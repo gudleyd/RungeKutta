@@ -95,20 +95,18 @@ void Expression::tokenize(std::string& s, std::vector<std::shared_ptr<Token>>& v
     for (size_t i = 0; i < results.size(); ++i) {
         if (results[i] == "-") {
             if (i == results.size() - 1) {
-                throw std::logic_error("Parsing Error:\n\t\tWrong syntax at pos " + std::to_string(results.size() - 1) + "\n");
+                throw std::logic_error(
+                        "Parsing Error:\n\t\tWrong syntax at pos " + std::to_string(results.size() - 1) + "\n");
             }
 
             if (i == 0 || v.back()->type() == Operator || v.back()->type() == LeftParen) {
                 auto token = Expression::getToken("--");
                 v.emplace_back(token);
-            } else {
-                auto token = Expression::getToken("-");
-                v.emplace_back(token);
+                continue;
             }
-        } else {
-            auto token = Expression::getToken(results[i]);
-            v.emplace_back(token);
         }
+        auto token = Expression::getToken(results[i]);
+        v.emplace_back(token);
     }
 }
 
