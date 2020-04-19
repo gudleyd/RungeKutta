@@ -5,28 +5,36 @@
 #include <cstring>
 #include "Expression.h"
 
-const std::map<std::string, std::shared_ptr<Token>> Expression::tokens = {
-        {"*", std::make_shared<MulToken>()},
-        {"+", std::make_shared<SumToken>()},
-        {"-", std::make_shared<SubToken>()},
-        {"--", std::make_shared<MinusToken>()},
-        {"/", std::make_shared<DivToken>()},
-        {"(", std::make_shared<LeftParenToken>()},
-        {")", std::make_shared<RightParenToken>()},
-        {"sin", std::make_shared<SinToken>()}
+template class Expression<float>;
+template class Expression<double>;
+template class Expression<long double>;
+
+template<typename Value>
+const std::map<std::string, std::shared_ptr<Token<Value>>> Expression<Value>::tokens = {
+        {"*", std::make_shared<MulToken<Value>>()},
+        {"+", std::make_shared<SumToken<Value>>()},
+        {"-", std::make_shared<SubToken<Value>>()},
+        {"--", std::make_shared<MinusToken<Value>>()},
+        {"/", std::make_shared<DivToken<Value>>()},
+        {"(", std::make_shared<LeftParenToken<Value>>()},
+        {")", std::make_shared<RightParenToken<Value>>()},
+        {"sin", std::make_shared<SinToken<Value>>()}
 };
 
-
-void Expression::parse(std::string s, const std::vector<std::string>& variables) {
+template<typename Value>
+void Expression<Value>::parse(std::string s,
+        const std::vector<std::string>& variables,
+        std::pair<Value, bool> (*f)(const std::string&)) {
     this->vars = variables;
+    this->converter = f;
     while (!mainQueue.empty()) {
         mainQueue.pop();
     }
 
-    std::vector<std::shared_ptr<Token>> v;
+    std::vector<std::shared_ptr<Token<Value>>> v;
     this->tokenize(s, v);
 
-    std::stack<std::shared_ptr<Token>> opStack;
+    std::stack<std::shared_ptr<Token<Value>>> opStack;
     for (auto& t: v) {
         if (t->type() == Number || t->type() == Variable) {
             mainQueue.push(t);
@@ -61,12 +69,13 @@ void Expression::parse(std::string s, const std::vector<std::string>& variables)
     }
 }
 
-double Expression::evaluate(const std::vector<double>& varsValues) {
-    std::stack<double> s;
+template<typename Value>
+Value Expression<Value>::evaluate(const std::vector<Value>& varsValues) {
+    std::stack<Value> s;
     while (!mainQueue.empty()) {
         auto t = mainQueue.front();
         if (t->type() == Variable) {
-            auto v = std::dynamic_pointer_cast<VariableToken>(t);
+            auto v = std::dynamic_pointer_cast<VariableToken<Value>>(t);
             v->evaluate(s, varsValues);
         } else {
             t->evaluate(s);
@@ -77,7 +86,8 @@ double Expression::evaluate(const std::vector<double>& varsValues) {
     return s.top();
 }
 
-void Expression::tokenize(std::string& s, std::vector<std::shared_ptr<Token>>& v) {
+template<typename Value>
+void Expression<Value>::tokenize(std::string& s, std::vector<std::shared_ptr<Token<Value>>>& v) {
     Expression::prepareString(s);
     std::istringstream iss(s);
     std::vector<std::string> results(std::istream_iterator<std::string>{iss},
@@ -101,7 +111,8 @@ void Expression::tokenize(std::string& s, std::vector<std::shared_ptr<Token>>& v
     }
 }
 
-void Expression::prepareString(std::string& s) {
+template<typename Value>
+void Expression<Value>::prepareString(std::string& s) {
     std::transform(s.begin(), s.end(), s.begin(),
                    [](unsigned char c){ return std::tolower(c); });
     for (auto& [tokenName, token]: Expression::tokens) {
@@ -109,18 +120,19 @@ void Expression::prepareString(std::string& s) {
     }
 }
 
-std::shared_ptr<Token> Expression::getToken(const std::string& tokenName) {
+template<typename Value>
+std::shared_ptr<Token<Value>> Expression<Value>::getToken(const std::string& tokenName) {
 
-    auto [value, isNum] = utils_rk::stringToDouble(tokenName);
+    auto [value, isNum] = this->converter(tokenName);
     if (isNum) {
-        return std::make_shared<NumberToken>(value);
+        return std::make_shared<NumberToken<Value>>(value);
     } else if (Expression::tokens.find(tokenName) != Expression::tokens.end()) {
         const auto& token = Expression::tokens.at(tokenName);
         return token;
     } else {
         auto it = std::find(this->vars.begin(), this->vars.end(), tokenName);
         if (it != this->vars.end()) {
-            return std::make_shared<VariableToken>(it - this->vars.begin());
+            return std::make_shared<VariableToken<Value>>(it - this->vars.begin());
         }
     }
     throw std::logic_error("Parsing Error:\n\t\tFound unknown token: " + tokenName + "\n");

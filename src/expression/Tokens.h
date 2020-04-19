@@ -21,122 +21,135 @@ enum TokenAssociativity {
     Both, Right, Left
 };
 
+template<typename Value>
 class Token {
 public:
     [[nodiscard]] virtual TokenType type() const { return Undefined; };
     [[nodiscard]] virtual int precedence() const { return -1; }
     [[nodiscard]] virtual TokenAssociativity associativity() const { return Both; }
-    virtual void evaluate(std::stack<double>&) const { }
+    virtual void evaluate(std::stack<Value>&) const { }
 };
 
-class FunctionToken: public Token {
+template<typename Value>
+class FunctionToken: public Token<Value> {
 public:
     [[nodiscard]] TokenType type() const override { return Function; }
 };
 
-class OperationToken: public Token {
+template<typename Value>
+class OperationToken: public Token<Value> {
 public:
     [[nodiscard]] TokenType type() const override { return Operator; }
 };
 
-class VariableToken: public Token {
+template<typename Value>
+class VariableToken: public Token<Value> {
 public:
     explicit VariableToken(int num): num(num) { }
     [[nodiscard]] TokenType type() const override { return Variable; }
-    void evaluate(std::stack<double>& s, const std::vector<double>& vars) const {
+    void evaluate(std::stack<Value>& s, const std::vector<Value>& vars) const {
         s.push(vars[this->num]);
     }
 private:
     int num;
 };
 
-class LeftParenToken: public Token {
+template<typename Value>
+class LeftParenToken: public Token<Value> {
 public:
     [[nodiscard]] TokenType type() const override { return LeftParen; }
 };
 
-class RightParenToken: public Token {
+template<typename Value>
+class RightParenToken: public Token<Value> {
 public:
     [[nodiscard]] TokenType type() const override { return RightParen; }
 };
 
-class NumberToken: public Token {
+template<typename Value>
+class NumberToken: public Token<Value> {
 public:
-    explicit NumberToken(double value): value(value) {}
+    explicit NumberToken(Value value): value(value) {}
     [[nodiscard]] TokenType type() const override { return Number; }
-    void evaluate(std::stack<double>& s) const override {
+    void evaluate(std::stack<Value>& s) const override {
         s.push(this->value);
     }
 private:
-    double value;
+    Value value;
 };
 
-class SinToken: public FunctionToken {
+template<typename Value>
+class SinToken: public FunctionToken<Value> {
 public:
-    void evaluate(std::stack<double>& s) const override {
-        double a = s.top();
+    void evaluate(std::stack<Value>& s) const override {
+        Value a = s.top();
         s.pop();
         s.push(std::sin(a));
     }
 };
 
-class SumToken: public OperationToken {
+template<typename Value>
+class SumToken: public OperationToken<Value> {
 public:
     [[nodiscard]] TokenAssociativity associativity() const override { return Both; }
     [[nodiscard]] int precedence() const override { return 2; }
-    void evaluate(std::stack<double>& s) const override {
-        double a = s.top();
+    void evaluate(std::stack<Value>& s) const override {
+        Value a = s.top();
         s.pop();
-        double b = s.top();
+        Value b = s.top();
         s.pop();
         s.push(a + b);
     }
 };
 
-class SubToken: public OperationToken {
+template<typename Value>
+class SubToken: public OperationToken<Value> {
 public:
     [[nodiscard]] TokenAssociativity associativity() const override { return Left; }
     [[nodiscard]] int precedence() const override { return 2; }
-    void evaluate(std::stack<double>& s) const override {
-        double a = s.top();
+    void evaluate(std::stack<Value>& s) const override {
+        Value a = s.top();
         s.pop();
-        double b = s.top();
+        Value b = s.top();
         s.pop();
         s.push(b - a);
     }
 };
 
-class MulToken: public OperationToken {
+template<typename Value>
+class MulToken: public OperationToken<Value> {
 public:
     [[nodiscard]] TokenAssociativity associativity() const override { return Both; }
     [[nodiscard]] int precedence() const override { return 1; }
-    void evaluate(std::stack<double>& s) const override {
-        double a = s.top();
+    void evaluate(std::stack<Value>& s) const override {
+        Value a = s.top();
         s.pop();
-        double b = s.top();
+        Value b = s.top();
         s.pop();
         s.push(a * b);
     }
 };
 
-class DivToken: public OperationToken {
+template<typename Value>
+class DivToken: public OperationToken<Value> {
 public:
     [[nodiscard]] TokenAssociativity associativity() const override { return Left; }
     [[nodiscard]] int precedence() const override { return 1; }
-    void evaluate(std::stack<double>& s) const override {
-        double a = s.top();
+    void evaluate(std::stack<Value>& s) const override {
+        Value a = s.top();
         s.pop();
-        double b = s.top();
+        Value b = s.top();
         s.pop();
         s.push(b / a);
     }
 };
 
-class MinusToken: public OperationToken {
+template<typename Value>
+class MinusToken: public OperationToken<Value> {
     [[nodiscard]] TokenAssociativity associativity() const override { return Right; }
     [[nodiscard]] int precedence() const override { return 0; }
-    void evaluate(std::stack<double>& s) const override {
-        double a = s.top();
+    void evaluate(std::stack<Value>& s) const override {
+        Value a = s.top();
         s.pop();
         s.push(-a);
     }
@@ -147,5 +160,13 @@ class MinusToken: public OperationToken {
 /*
  * Util Functions
  */
-bool isLeftAssociative(const std::shared_ptr<Token>& t);
-bool isParen(const std::shared_ptr<Token>& t);
+
+template<typename Value>
+bool isLeftAssociative(const std::shared_ptr<Token<Value>>& t) {
+    return t->associativity() == Both || t->associativity() == Left;
+}
+
+template<typename Value>
+bool isParen(const std::shared_ptr<Token<Value>>& t) {
+    return t->type() == LeftParen || t->type() == RightParen;
+}

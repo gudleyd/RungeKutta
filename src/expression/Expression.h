@@ -19,17 +19,21 @@
 #include "Tokens.h"
 #include "../utils/utils.h"
 
+template<typename Value>
 class Expression {
 public:
-    void parse(std::string, const std::vector<std::string>& = {});
-    double evaluate(const std::vector<double>& = {});
+    void parse(std::string,
+                const std::vector<std::string>& = {},
+                std::pair<Value, bool> (*f)(const std::string&) = utils_rk::stringToDouble);
+    Value evaluate(const std::vector<Value>& = {});
 private:
-    std::queue<std::shared_ptr<Token>> mainQueue;
+    std::queue<std::shared_ptr<Token<Value>>> mainQueue;
     std::vector<std::string> vars;
+    std::pair<Value, bool> (*converter)(const std::string&) = nullptr;
 
-    void tokenize(std::string&, std::vector<std::shared_ptr<Token>>&);
-    std::shared_ptr<Token> getToken(const std::string&);
+    void tokenize(std::string&, std::vector<std::shared_ptr<Token<Value>>>&);
+    std::shared_ptr<Token<Value>> getToken(const std::string&);
 
     static void prepareString(std::string&);
-    static const std::map<std::string, std::shared_ptr<Token>> tokens;
+    static const std::map<std::string, std::shared_ptr<Token<Value>>> tokens;
 };
