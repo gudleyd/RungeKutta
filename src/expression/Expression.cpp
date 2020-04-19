@@ -5,15 +5,6 @@
 #include <cstring>
 #include "Expression.h"
 
-std::pair<double, bool> stringToDouble(const std::string& s) {
-    char* p;
-    double converted = std::strtod(s.c_str(), &p);
-    if (*p)
-        return {0, 0};
-    else
-        return {converted, 1};
-}
-
 const std::map<std::string, std::shared_ptr<Token>> Expression::tokens = {
         {"*", std::make_shared<MulToken>()},
         {"+", std::make_shared<SumToken>()},
@@ -120,7 +111,7 @@ void Expression::prepareString(std::string& s) {
 
 std::shared_ptr<Token> Expression::getToken(const std::string& tokenName) {
 
-    auto [value, isNum] = stringToDouble(tokenName);
+    auto [value, isNum] = utils_rk::stringToDouble(tokenName);
     if (isNum) {
         return std::make_shared<NumberToken>(value);
     } else if (Expression::tokens.find(tokenName) != Expression::tokens.end()) {
