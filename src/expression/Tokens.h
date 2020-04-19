@@ -142,4 +142,10 @@ class MinusToken: public OperationToken {
     }
 };
 
+
+
+/*
+ * Util Functions
+ */
 bool isLeftAssociative(const std::shared_ptr<Token>& t);
+bool isParen(const std::shared_ptr<Token>& t);

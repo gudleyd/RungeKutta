@@ -7,3 +7,7 @@
 bool isLeftAssociative(const std::shared_ptr<Token>& t) {
     return t->associativity() == Both || t->associativity() == Left;
 }
+
+bool isParen(const std::shared_ptr<Token>& t) {
+    return t->type() == LeftParen || t->type() == RightParen;
+}

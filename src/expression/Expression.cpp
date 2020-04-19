@@ -39,7 +39,7 @@ void Expression::parse(std::string s, const std::vector<std::string>& variables)
     for (auto& t: v) {
         if (t->type() == Number || t->type() == Variable) {
             mainQueue.push(t);
-        } else if (t->type() == Function) {
+        } else if (t->type() == LeftParen || t->type() == Function) {
             opStack.push(t);
         } else if (t->type() == Operator) {
             while ((!opStack.empty()) && (opStack.top()->type() == Function
@@ -50,19 +50,21 @@ void Expression::parse(std::string s, const std::vector<std::string>& variables)
                 opStack.pop();
             }
             opStack.push(t);
-        } else if (t->type() == LeftParen) {
-            opStack.push(t);
         } else if (t->type() == RightParen) {
             while ((!opStack.empty()) && opStack.top()->type() != LeftParen) {
                 mainQueue.push(opStack.top());
                 opStack.pop();
             }
-            if (!opStack.empty() && opStack.top()->type() == LeftParen) {
+            if (opStack.empty())
+                throw std::logic_error("Parsing Error:\n\t\tMismatched parentheses\n");
+            if (opStack.top()->type() == LeftParen) {
                 opStack.pop();
             }
         }
     }
     while (!opStack.empty()) {
+        if (isParen(opStack.top()))
+            throw std::logic_error("Parsing Error:\n\t\tMismatched parentheses\n");
         mainQueue.push(opStack.top());
         opStack.pop();
     }
@@ -93,7 +95,7 @@ void Expression::tokenize(std::string& s, std::vector<std::shared_ptr<Token>>& v
     for (size_t i = 0; i < results.size(); ++i) {
         if (results[i] == "-") {
             if (i == results.size() - 1) {
-                // ToDO: Add Errors handling
+                throw std::logic_error("Parsing Error:\n\t\tWrong syntax at pos " + std::to_string(results.size() - 1) + "\n");
             }
 
             if (i == 0 || v.back()->type() == Operator || v.back()->type() == LeftParen) {
@@ -119,7 +121,6 @@ void Expression::prepareString(std::string& s) {
 }
 
 std::shared_ptr<Token> Expression::getToken(const std::string& tokenName) {
-    // ToDo: Add Errors handling
 
     auto [value, isNum] = stringToDouble(tokenName);
     if (isNum) {
@@ -133,5 +134,5 @@ std::shared_ptr<Token> Expression::getToken(const std::string& tokenName) {
             return std::make_shared<VariableToken>(it - this->vars.begin());
         }
     }
-    throw "skgj";
+    throw std::logic_error("Parsing Error:\n\t\tFound unknown token: " + tokenName + "\n");
 }
