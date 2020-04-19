@@ -5,10 +5,6 @@
 #include <cstring>
 #include "Expression.h"
 
-bool isLeftAssociative(const std::shared_ptr<Token>& t) {
-    return t->associativity() == Both || t->associativity() == Left;
-}
-
 std::pair<double, bool> stringToDouble(const std::string& s) {
     char* p;
     double converted = std::strtod(s.c_str(), &p);
@@ -30,32 +26,33 @@ const std::map<std::string, std::shared_ptr<Token>> Expression::tokens = {
 };
 
 
-void Expression::parse(std::string s) {
+void Expression::parse(std::string s, const std::vector<std::string>& variables) {
+    this->vars = variables;
     while (!mainQueue.empty()) {
         mainQueue.pop();
     }
 
     std::vector<std::shared_ptr<Token>> v;
-    Expression::tokenize(s, v);
+    this->tokenize(s, v);
 
     std::stack<std::shared_ptr<Token>> opStack;
-    for (size_t i = 0; i < v.size(); ++i) {
-        if (v[i]->type() == Number) {
-            mainQueue.push(v[i]);
-        } else if (v[i]->type() == Function) {
-            opStack.push(v[i]);
-        } else if (v[i]->type() == Operator) {
+    for (auto& t: v) {
+        if (t->type() == Number || t->type() == Variable) {
+            mainQueue.push(t);
+        } else if (t->type() == Function) {
+            opStack.push(t);
+        } else if (t->type() == Operator) {
             while ((!opStack.empty()) && (opStack.top()->type() == Function
-                                          || (opStack.top()->type() == Operator && (opStack.top()->precedence() < v[i]->precedence() ||
-                                                                                    (opStack.top()->precedence() == v[i]->precedence() && isLeftAssociative(v[i])))))
+                                          || (opStack.top()->type() == Operator && (opStack.top()->precedence() < t->precedence() ||
+                                                                                    (opStack.top()->precedence() == t->precedence() && isLeftAssociative(t)))))
                    && (opStack.top()->type() != LeftParen)) {
                 mainQueue.push(opStack.top());
                 opStack.pop();
             }
-            opStack.push(v[i]);
-        } else if (v[i]->type() == LeftParen) {
-            opStack.push(v[i]);
-        } else if (v[i]->type() == RightParen) {
+            opStack.push(t);
+        } else if (t->type() == LeftParen) {
+            opStack.push(t);
+        } else if (t->type() == RightParen) {
             while ((!opStack.empty()) && opStack.top()->type() != LeftParen) {
                 mainQueue.push(opStack.top());
                 opStack.pop();
@@ -71,11 +68,17 @@ void Expression::parse(std::string s) {
     }
 }
 
-double Expression::evaluate() {
+double Expression::evaluate(const std::vector<double>& varsValues) {
     std::stack<double> s;
     while (!mainQueue.empty()) {
         auto t = mainQueue.front();
-        t->evaluate(s);
+        if (t->type() == Variable) {
+            auto v = std::dynamic_pointer_cast<VariableToken>(t);
+            v->evaluate(s, varsValues);
+        } else {
+            t->evaluate(s);
+        }
+
         mainQueue.pop();
     }
     return s.top();
@@ -90,7 +93,7 @@ void Expression::tokenize(std::string& s, std::vector<std::shared_ptr<Token>>& v
     for (size_t i = 0; i < results.size(); ++i) {
         if (results[i] == "-") {
             if (i == results.size() - 1) {
-                // ToDO: throw error
+                // ToDO: Add Errors handling
             }
 
             if (i == 0 || v.back()->type() == Operator || v.back()->type() == LeftParen) {
@@ -116,13 +119,19 @@ void Expression::prepareString(std::string& s) {
 }
 
 std::shared_ptr<Token> Expression::getToken(const std::string& tokenName) {
-    // ToDO: Add variables
+    // ToDo: Add Errors handling
 
     auto [value, isNum] = stringToDouble(tokenName);
     if (isNum) {
         return std::make_shared<NumberToken>(value);
-    } else {
+    } else if (Expression::tokens.find(tokenName) != Expression::tokens.end()) {
         const auto& token = Expression::tokens.at(tokenName);
         return token;
+    } else {
+        auto it = std::find(this->vars.begin(), this->vars.end(), tokenName);
+        if (it != this->vars.end()) {
+            return std::make_shared<VariableToken>(it - this->vars.begin());
+        }
     }
+    throw "skgj";
 }

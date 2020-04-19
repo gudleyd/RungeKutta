@@ -8,12 +8,17 @@
 
 #pragma once
 
+#include <memory>
+#include <stack>
+#include <cmath>
+#include <vector>
+
 enum TokenType {
-    Number, Function, Operator, LeftParen, RightParen, Undefined
+    Undefined, Number, Function, Operator, LeftParen, RightParen, Variable
 };
 
 enum TokenAssociativity {
-    Right, Left, Both
+    Both, Right, Left
 };
 
 class Token {
@@ -32,6 +37,17 @@ public:
 class OperationToken: public Token {
 public:
     [[nodiscard]] TokenType type() const override { return Operator; }
+};
+
+class VariableToken: public Token {
+public:
+    explicit VariableToken(int num): num(num) { }
+    [[nodiscard]] TokenType type() const override { return Variable; }
+    void evaluate(std::stack<double>& s, const std::vector<double>& vars) const {
+        s.push(vars[this->num]);
+    }
+private:
+    int num;
 };
 
 class LeftParenToken: public Token {
@@ -125,3 +141,5 @@ class MinusToken: public OperationToken {
         s.push(-a);
     }
 };
+
+bool isLeftAssociative(const std::shared_ptr<Token>& t);

@@ -21,14 +21,15 @@
 
 class Expression {
 public:
-    void parse(std::string s);
-    double evaluate();
+    void parse(std::string, const std::vector<std::string>& = {});
+    double evaluate(const std::vector<double>& = {});
 private:
     std::queue<std::shared_ptr<Token>> mainQueue;
+    std::vector<std::string> vars;
 
-    static void tokenize(std::string&, std::vector<std::shared_ptr<Token>>&);
+    void tokenize(std::string&, std::vector<std::shared_ptr<Token>>&);
+    std::shared_ptr<Token> getToken(const std::string&);
+
     static void prepareString(std::string&);
-    static std::shared_ptr<Token> getToken(const std::string&);
-
     static const std::map<std::string, std::shared_ptr<Token>> tokens;
 };

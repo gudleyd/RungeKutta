@@ -1,11 +1,10 @@
 #include <iostream>
 
-#include "src/parser/Expression.h"
+#include "src/expression/Expression.h"
 
 int main() {
     Expression p;
-    p.parse("2*-(2+4)");
-    // Correct Answer 446874382903430
-    std::cout << p.evaluate() << std::endl;
+    p.parse("x * y", {"x", "y"});
+    std::cout << p.evaluate({2, 3}) << std::endl;
     return 0;
 }
