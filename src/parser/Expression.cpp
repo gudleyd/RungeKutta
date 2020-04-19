@@ -3,7 +3,7 @@
 //
 
 #include <cstring>
-#include "Parser.h"
+#include "Expression.h"
 
 bool isLeftAssociative(const std::shared_ptr<Token>& t) {
     return t->associativity() == Both || t->associativity() == Left;
@@ -18,7 +18,7 @@ std::pair<double, bool> stringToDouble(const std::string& s) {
         return {converted, 1};
 }
 
-const std::map<std::string, std::shared_ptr<Token>> Parser::tokens = {
+const std::map<std::string, std::shared_ptr<Token>> Expression::tokens = {
         {"*", std::make_shared<MulToken>()},
         {"+", std::make_shared<SumToken>()},
         {"-", std::make_shared<SubToken>()},
@@ -30,13 +30,13 @@ const std::map<std::string, std::shared_ptr<Token>> Parser::tokens = {
 };
 
 
-void Parser::parse(std::string s) {
+void Expression::parse(std::string s) {
     while (!mainQueue.empty()) {
         mainQueue.pop();
     }
 
     std::vector<std::shared_ptr<Token>> v;
-    Parser::prepareTokenVector(s, v);
+    Expression::tokenize(s, v);
 
     std::stack<std::shared_ptr<Token>> opStack;
     for (size_t i = 0; i < v.size(); ++i) {
@@ -71,7 +71,7 @@ void Parser::parse(std::string s) {
     }
 }
 
-double Parser::evaluate() {
+double Expression::evaluate() {
     std::stack<double> s;
     while (!mainQueue.empty()) {
         auto t = mainQueue.front();
@@ -81,8 +81,8 @@ double Parser::evaluate() {
     return s.top();
 }
 
-void Parser::prepareTokenVector(std::string& s, std::vector<std::shared_ptr<Token>>& v) {
-    Parser::prepareString(s);
+void Expression::tokenize(std::string& s, std::vector<std::shared_ptr<Token>>& v) {
+    Expression::prepareString(s);
     std::istringstream iss(s);
     std::vector<std::string> results(std::istream_iterator<std::string>{iss},
                                      std::istream_iterator<std::string>());
@@ -94,45 +94,35 @@ void Parser::prepareTokenVector(std::string& s, std::vector<std::shared_ptr<Toke
             }
 
             if (i == 0 || v.back()->type() == Operator || v.back()->type() == LeftParen) {
-                auto token = Parser::getToken("--");
+                auto token = Expression::getToken("--");
                 v.emplace_back(token);
             } else {
-                auto token = Parser::getToken("-");
+                auto token = Expression::getToken("-");
                 v.emplace_back(token);
             }
         } else {
-            auto token = Parser::getToken(results[i]);
+            auto token = Expression::getToken(results[i]);
             v.emplace_back(token);
         }
     }
 }
 
-void Parser::prepareString(std::string& s) {
+void Expression::prepareString(std::string& s) {
     std::transform(s.begin(), s.end(), s.begin(),
                    [](unsigned char c){ return std::tolower(c); });
-    for (auto& [tokenName, token]: Parser::tokens) {
-        Parser::replace(s, tokenName, " " + tokenName + " ");
+    for (auto& [tokenName, token]: Expression::tokens) {
+        utils_rk::replace(s, tokenName, " " + tokenName + " ");
     }
 }
 
-void Parser::replace(std::string& s, const std::string& from, const std::string& to) {
-
-    size_t pos = s.find(from);
-    while( pos != std::string::npos)
-    {
-        s.replace(pos, from.size(), to);
-        pos = s.find(from, pos + to.size());
-    }
-}
-
-std::shared_ptr<Token> Parser::getToken(const std::string& tokenName) {
+std::shared_ptr<Token> Expression::getToken(const std::string& tokenName) {
     // ToDO: Add variables
 
     auto [value, isNum] = stringToDouble(tokenName);
     if (isNum) {
         return std::make_shared<NumberToken>(value);
     } else {
-        const auto& token = Parser::tokens.at(tokenName);
+        const auto& token = Expression::tokens.at(tokenName);
         return token;
     }
 }
