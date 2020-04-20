@@ -14,7 +14,7 @@
 #include <vector>
 
 enum TokenType {
-    Undefined, Number, Function, Operator, LeftParen, RightParen, Variable
+    Undefined, Number, Function, Operator, LeftParen, RightParen, Variable, Delimiter
 };
 
 enum TokenAssociativity {
@@ -40,6 +40,13 @@ template<typename Value>
 class FunctionToken: public Token<Value> {
 public:
     [[nodiscard]] enum TokenType type() const override { return Function; }
+};
+
+template<typename Value>
+class DelimiterToken: public Token<Value> {
+public:
+    [[nodiscard]] enum TokenType type() const override { return Delimiter; }
+    [[nodiscard]] std::string cname() const override { return ","; }
 };
 
 
@@ -186,6 +193,19 @@ public:
         s.push(std::sin(a));
     }
     [[nodiscard]] std::string cname() const override { return "sin"; }
+};
+
+template<typename Value>
+class PowToken: public FunctionToken<Value> {
+public:
+    void evaluate(std::stack<Value>& s, const std::vector<Value>& vars) const override {
+        Value a = s.top();
+        s.pop();
+        Value b = s.top();
+        s.pop();
+        s.push(std::pow(b, a));
+    }
+    [[nodiscard]] std::string cname() const override { return "pow"; }
 };
 
 

@@ -18,7 +18,9 @@ const std::map<std::string, std::shared_ptr<Token<Value>>> Expression<Value>::to
         {"/", std::make_shared<DivToken<Value>>()},
         {"(", std::make_shared<LeftParenToken<Value>>()},
         {")", std::make_shared<RightParenToken<Value>>()},
-        {"sin", std::make_shared<SinToken<Value>>()}
+        {",", std::make_shared<DelimiterToken<Value>>()},
+        {"sin", std::make_shared<SinToken<Value>>()},
+        {"pow", std::make_shared<PowToken<Value>>()}
 };
 
 
@@ -184,6 +186,7 @@ bool Expression<Value>::compile() {
 
     return (this->compiled != nullptr);
 }
+
 
 template<typename Value>
 Expression<Value>::~Expression() {
