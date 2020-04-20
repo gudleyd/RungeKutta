@@ -2,12 +2,12 @@
 // Created by Ivan on 19.04.2020.
 //
 
-#include <cstring>
 #include "Expression.h"
 
-template class Expression<float>;
-template class Expression<double>;
+/*template class Expression<float>;
+template class Expression<double>;*/
 template class Expression<long double>;
+
 
 template<typename Value>
 const std::map<std::string, std::shared_ptr<Token<Value>>> Expression<Value>::tokens = {
@@ -21,12 +21,15 @@ const std::map<std::string, std::shared_ptr<Token<Value>>> Expression<Value>::to
         {"sin", std::make_shared<SinToken<Value>>()}
 };
 
+
 template<typename Value>
 void Expression<Value>::parse(std::string s,
         const std::vector<std::string>& variables,
         std::pair<Value, bool> (*f)(const std::string&)) {
     this->vars = variables;
     this->converter = f;
+    this->compiled = nullptr;
+    this->dll = nullptr;
 
     this->expression.clear();
     this->mainQueue.clear();
@@ -68,14 +71,19 @@ void Expression<Value>::parse(std::string s,
     }
 }
 
+
 template<typename Value>
 Value Expression<Value>::evaluate(const std::vector<Value>& varsValues) {
+    if (this->compiled != nullptr) {
+        return this->compiled(varsValues.data());
+    }
     std::stack<Value> s;
     for (auto& t: mainQueue) {
         t->evaluate(s, varsValues);
     }
     return s.top();
 }
+
 
 template<typename Value>
 void Expression<Value>::tokenize(std::string& s, std::vector<std::shared_ptr<Token<Value>>>& v) {
@@ -102,6 +110,7 @@ void Expression<Value>::tokenize(std::string& s, std::vector<std::shared_ptr<Tok
     }
 }
 
+
 template<typename Value>
 void Expression<Value>::prepareString(std::string& s) {
     std::transform(s.begin(), s.end(), s.begin(),
@@ -110,6 +119,7 @@ void Expression<Value>::prepareString(std::string& s) {
         utils_rk::replace(s, tokenName, " " + tokenName + " ");
     }
 }
+
 
 template<typename Value>
 std::shared_ptr<Token<Value>> Expression<Value>::getToken(const std::string& tokenName) {
@@ -127,4 +137,56 @@ std::shared_ptr<Token<Value>> Expression<Value>::getToken(const std::string& tok
         }
     }
     throw std::logic_error("Parsing Error:\n\t\tFound unknown token: " + tokenName + "\n");
+}
+
+
+template<typename Value>
+bool Expression<Value>::compile() {
+
+    // ToDO:: Insert valid spaces (2--3 - is not valid in c++)
+    std::string functionString;
+    for (auto& t: this->expression) {
+        functionString += t->cname();
+    }
+
+    std::string valueName = utils_rk::typeNameToString(typeid(Value).name());
+    std::ofstream sf("file.cc");
+    sf  << "#include<math.h>\n"
+        << "#ifdef __cplusplus\n"
+        << "extern \"C\" {\n"
+        << "#endif\n"
+        << valueName << " compiled(const " << valueName << "* vars) {\n"
+        << "return " << functionString << ";\n"
+        << "}\n"
+        << "#ifdef __cplusplus\n"
+        << "}\n"
+        << "#endif";
+    sf.close();
+
+    system("c++ file.cc -o file.so -shared -fPIC");
+
+#ifndef WIN32
+    this->dll = dlopen("file.so", RTLD_LAZY);
+#else
+    this->dll = LoadLibrary("file.so");
+#endif
+
+    if (this->dll == nullptr) return false;
+
+#ifndef WIN32
+    fun = (Value (*)(const Value*))dlsym(this->dll, "compiled");
+#else
+    compiled = (Value (*)(const Value*))GetProcAddress((HINSTANCE)this->dll, "compiled");
+#endif
+
+    return (this->compiled != nullptr);
+}
+
+template<typename Value>
+Expression<Value>::~Expression() {
+#ifndef WIN32
+    dlclose(this->dll);
+#else
+    FreeLibrary((HINSTANCE)this->dll);
+#endif
 }
