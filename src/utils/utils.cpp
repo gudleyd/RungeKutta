@@ -33,4 +33,13 @@ namespace utils_rk {
             pos = s.find(from, pos + to.size());
         }
     }
+
+    std::string typeNameToString(const char* mangled)
+    {
+        int status;
+        std::unique_ptr<char[], void (*)(void*)> result(
+                abi::__cxa_demangle(mangled, nullptr, nullptr, &status), std::free);
+        return result ? std::string(result.get()) : "error occurred";
+    }
+
 }

@@ -28,38 +28,41 @@ enum TokenAssociativity {
 template<typename Value>
 class Token {
 public:
-    [[nodiscard]] virtual TokenType type() const { return Undefined; };
+    [[nodiscard]] virtual enum TokenType type() const { return Undefined; };
     [[nodiscard]] virtual int precedence() const { return -1; }
     [[nodiscard]] virtual TokenAssociativity associativity() const { return Both; }
     virtual void evaluate(std::stack<Value>&, const std::vector<Value>&) const { }
+    [[nodiscard]] virtual std::string cname() const { return ""; }
 };
 
 
 template<typename Value>
 class FunctionToken: public Token<Value> {
 public:
-    [[nodiscard]] TokenType type() const override { return Function; }
+    [[nodiscard]] enum TokenType type() const override { return Function; }
 };
 
 
 template<typename Value>
 class OperationToken: public Token<Value> {
 public:
-    [[nodiscard]] TokenType type() const override { return Operator; }
+    [[nodiscard]] enum TokenType type() const override { return Operator; }
 };
 
 
 template<typename Value>
 class LeftParenToken: public Token<Value> {
 public:
-    [[nodiscard]] TokenType type() const override { return LeftParen; }
+    [[nodiscard]] enum TokenType type() const override { return LeftParen; }
+    [[nodiscard]] std::string cname() const override { return "("; }
 };
 
 
 template<typename Value>
 class RightParenToken: public Token<Value> {
 public:
-    [[nodiscard]] TokenType type() const override { return RightParen; }
+    [[nodiscard]] enum TokenType type() const override { return RightParen; }
+    [[nodiscard]] std::string cname() const override { return ")"; }
 };
 
 
@@ -67,10 +70,11 @@ template<typename Value>
 class VariableToken: public Token<Value> {
 public:
     explicit VariableToken(int num): num(num) { }
-    [[nodiscard]] TokenType type() const override { return Variable; }
+    [[nodiscard]] enum TokenType type() const override { return Variable; }
     void evaluate(std::stack<Value>& s, const std::vector<Value>& vars) const {
         s.push(vars[this->num]);
     }
+    [[nodiscard]] std::string cname() const override { return "vars[" + std::to_string(num) + "]"; }
 private:
     int num;
 };
@@ -80,10 +84,11 @@ template<typename Value>
 class NumberToken: public Token<Value> {
 public:
     explicit NumberToken(Value value): value(value) {}
-    [[nodiscard]] TokenType type() const override { return Number; }
+    [[nodiscard]] enum TokenType type() const override { return Number; }
     void evaluate(std::stack<Value>& s, const std::vector<Value>& vars) const override {
         s.push(this->value);
     }
+    [[nodiscard]] std::string cname() const override { return std::to_string(value); }
 private:
     Value value;
 };
@@ -103,6 +108,7 @@ public:
         s.pop();
         s.push(a + b);
     }
+    [[nodiscard]] std::string cname() const override { return "+"; }
 };
 
 
@@ -118,6 +124,7 @@ public:
         s.pop();
         s.push(b - a);
     }
+    [[nodiscard]] std::string cname() const override { return "-"; }
 };
 
 
@@ -133,6 +140,7 @@ public:
         s.pop();
         s.push(a * b);
     }
+    [[nodiscard]] std::string cname() const override { return "*"; }
 };
 
 
@@ -148,6 +156,7 @@ public:
         s.pop();
         s.push(b / a);
     }
+    [[nodiscard]] std::string cname() const override { return "/"; }
 };
 
 
@@ -160,6 +169,7 @@ class UnaryMinusToken: public OperationToken<Value> {
         s.pop();
         s.push(-a);
     }
+    [[nodiscard]] std::string cname() const override { return "-"; }
 };
 
 
@@ -175,6 +185,7 @@ public:
         s.pop();
         s.push(std::sin(a));
     }
+    [[nodiscard]] std::string cname() const override { return "sin"; }
 };
 
 
