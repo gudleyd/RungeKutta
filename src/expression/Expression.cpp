@@ -143,10 +143,13 @@ std::shared_ptr<Token<Value>> Expression<Value>::getToken(const std::string& tok
 template<typename Value>
 bool Expression<Value>::compile() {
 
-    // ToDO:: Insert valid spaces (2--3 - is not valid in c++)
     std::string functionString;
     for (auto& t: this->expression) {
-        functionString += t->cname();
+        if (t->type() == Operator) {
+            functionString += " " + t->cname() + " ";
+        } else {
+            functionString += t->cname();
+        }
     }
 
     std::string valueName = utils_rk::typeNameToString(typeid(Value).name());
