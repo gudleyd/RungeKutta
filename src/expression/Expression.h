@@ -15,6 +15,7 @@
 #include <map>
 #include <memory>
 #include <queue>
+#include <list>
 
 #include "Tokens.h"
 #include "../utils/utils.h"
@@ -27,7 +28,7 @@ public:
                 std::pair<Value, bool> (*f)(const std::string&) = utils_rk::stringToDouble);
     Value evaluate(const std::vector<Value>& = {});
 private:
-    std::queue<std::shared_ptr<Token<Value>>> mainQueue;
+    std::list<std::shared_ptr<Token<Value>>> mainQueue;
     std::vector<std::shared_ptr<Token<Value>>> expression;
     std::vector<std::string> vars;
     std::pair<Value, bool> (*converter)(const std::string&) = nullptr;

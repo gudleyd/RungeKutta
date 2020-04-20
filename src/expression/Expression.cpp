@@ -27,17 +27,16 @@ void Expression<Value>::parse(std::string s,
         std::pair<Value, bool> (*f)(const std::string&)) {
     this->vars = variables;
     this->converter = f;
+
     this->expression.clear();
-    while (!mainQueue.empty()) {
-        mainQueue.pop();
-    }
+    this->mainQueue.clear();
 
     this->tokenize(s, this->expression);
 
     std::stack<std::shared_ptr<Token<Value>>> opStack;
     for (auto& t: this->expression) {
         if (t->type() == Number || t->type() == Variable) {
-            mainQueue.push(t);
+            mainQueue.push_back(t);
         } else if (t->type() == LeftParen || t->type() == Function) {
             opStack.push(t);
         } else if (t->type() == Operator) {
@@ -45,13 +44,13 @@ void Expression<Value>::parse(std::string s,
                                           || (opStack.top()->type() == Operator && (opStack.top()->precedence() < t->precedence() ||
                                                                                     (opStack.top()->precedence() == t->precedence() && isLeftAssociative(t)))))
                    && (opStack.top()->type() != LeftParen)) {
-                mainQueue.push(opStack.top());
+                mainQueue.push_back(opStack.top());
                 opStack.pop();
             }
             opStack.push(t);
         } else if (t->type() == RightParen) {
             while ((!opStack.empty()) && opStack.top()->type() != LeftParen) {
-                mainQueue.push(opStack.top());
+                mainQueue.push_back(opStack.top());
                 opStack.pop();
             }
             if (opStack.empty())
@@ -64,7 +63,7 @@ void Expression<Value>::parse(std::string s,
     while (!opStack.empty()) {
         if (isParen(opStack.top()))
             throw std::logic_error("Parsing Error:\n\t\tMismatched parentheses\n");
-        mainQueue.push(opStack.top());
+        mainQueue.push_back(opStack.top());
         opStack.pop();
     }
 }
@@ -72,10 +71,8 @@ void Expression<Value>::parse(std::string s,
 template<typename Value>
 Value Expression<Value>::evaluate(const std::vector<Value>& varsValues) {
     std::stack<Value> s;
-    while (!mainQueue.empty()) {
-        auto t = mainQueue.front();
+    for (auto& t: mainQueue) {
         t->evaluate(s, varsValues);
-        mainQueue.pop();
     }
     return s.top();
 }
