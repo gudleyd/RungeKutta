@@ -28,6 +28,7 @@ public:
     Value evaluate(const std::vector<Value>& = {});
 private:
     std::queue<std::shared_ptr<Token<Value>>> mainQueue;
+    std::vector<std::shared_ptr<Token<Value>>> expression;
     std::vector<std::string> vars;
     std::pair<Value, bool> (*converter)(const std::string&) = nullptr;
 
