@@ -87,38 +87,34 @@ Value Expression<Value>::evaluate(const std::vector<Value>& varsValues) {
 }
 
 
+
+// Edited by TV on 21.04.2020
 template<typename Value>
 void Expression<Value>::tokenize(std::string& s, std::vector<std::shared_ptr<Token<Value>>>& v) {
-    Expression::prepareString(s);
-    std::istringstream iss(s);
-    std::vector<std::string> results(std::istream_iterator<std::string>{iss},
-                                     std::istream_iterator<std::string>());
-    bool neg = false;
-    for (size_t i = 0; i < results.size(); ++i) {
-        if (results[i] == "-") {
-            if (i == results.size() - 1) {
-                throw std::logic_error(
-                        "Parsing Error:\n\t\tWrong syntax at pos " + std::to_string(results.size() - 1) + "\n");
-            }
-
-            if (i == 0 || v.back()->type() == Operator || v.back()->type() == LeftParen) {
-                auto token = Expression::getToken("--");
-                v.emplace_back(token);
-                continue;
+    std::string curToken = "";
+    curToken.reserve(20);
+    for (size_t i = 0; i < s.length(); ++i) {
+        char c = tolower(s[i]);
+        if (isalnum(c)) {
+            curToken.push_back(c);
+        } else {
+            if (!curToken.empty())
+                v.emplace_back(Expression::getToken(curToken));
+            curToken.clear();
+            if (!isspace(c)) {
+                if (c == '-') {
+                    if (i == s.length() - 1) {
+                        throw std::logic_error(
+                            "Parsing Error:\n\t\tWrong syntax at pos " + std::to_string(s.size() - 1) + "\n");
+                    }
+                    if (i == 0 || v.back()->type() == Operator || v.back()->type() == LeftParen || v.back()->type() == Delimiter) {
+                        v.emplace_back(Expression::getToken("--"));
+                        continue;
+                    }
+                }
+                v.emplace_back(Expression::getToken(std::string(1, c)));
             }
         }
-        auto token = Expression::getToken(results[i]);
-        v.emplace_back(token);
-    }
-}
-
-
-template<typename Value>
-void Expression<Value>::prepareString(std::string& s) {
-    std::transform(s.begin(), s.end(), s.begin(),
-                   [](unsigned char c){ return std::tolower(c); });
-    for (auto& [tokenName, token]: Expression::tokens) {
-        utils_rk::replace(s, tokenName, " " + tokenName + " ");
     }
 }
 

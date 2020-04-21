@@ -49,6 +49,5 @@ private:
     void tokenize(std::string&, std::vector<std::shared_ptr<Token<Value>>>&);
     std::shared_ptr<Token<Value>> getToken(const std::string&);
 
-    static void prepareString(std::string&);
     static const std::map<std::string, std::shared_ptr<Token<Value>>> tokens;
 };
