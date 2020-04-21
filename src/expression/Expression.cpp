@@ -184,9 +184,9 @@ namespace rk {
         if (this->dll == nullptr) return false;
 
 #ifndef WIN32
-        fun = (Value (*)(const Value*))dlsym(this->dll, "compiled");
+        this->compiled = (Value (*)(const Value*))dlsym(this->dll, "compiled");
 #else
-        compiled = (Value (*)(const Value *)) GetProcAddress((HINSTANCE) this->dll, "compiled");
+        this->compiled = (Value (*)(const Value *)) GetProcAddress((HINSTANCE) this->dll, "compiled");
 #endif
 
         return (this->compiled != nullptr);
