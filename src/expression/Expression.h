@@ -38,7 +38,7 @@ namespace rk {
         void parse(std::string,
                    const std::vector<std::string>& = {},
                    std::pair<Value, bool> (*f)(const std::string&) = utils_rk::stringToDouble);
-        Value evaluate(const std::vector<Value>& = {});
+        Value evaluate(const std::vector<Value>& = {}) const;
         bool compile();
     private:
         std::list<std::shared_ptr<Token<Value>>> mainQueue;

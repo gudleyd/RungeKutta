@@ -13,15 +13,24 @@
 namespace rk {
 
     template<typename Value>
-    void RK_solve(std::vector<std::shared_ptr<Expression<Value>>>& functions,
-                  const std::vector<std::string>& variables,
-                  const std::vector<Value>& initValues,
-                  Value h = 0.001,
-                  bool mustCompile = true) {
-        for (auto& e: functions) {
-            if (!e->compile() && mustCompile)
-                throw std::runtime_error("Function was not compiled, which can cause performance issues.\n"
-                                         "If u don't want to see this error, set mustCompile = false");
+    Value RK_solve_one(const Expression<Value>& function,
+                        std::vector<Value> initValues,
+                        Value at,
+                        Value h = 0.001) {
+        auto n = (size_t)((at - initValues[0]) / h);
+        Value k1, k2, k3, k4;
+        for (size_t i = 1; i <= n; ++i) {
+            k1 = h * function.evaluate(initValues);
+            initValues[0] += 0.5 * h;
+            initValues[1] += 0.5 * k1;
+            k2 = h * function.evaluate(initValues);
+            initValues[1] += 0.5 * k2 - 0.5 * k1;
+            k3 = h * function.evaluate(initValues);
+            initValues[0] += 0.5 * h;
+            initValues[1] += k3 - 0.5 * k2;
+            k4 = h * function.evaluate(initValues);
+            initValues[1] += (Value(1) / Value(6)) * (k1 + 2 * k2 + 2 * k3 + k4) - k3;
         }
+        return initValues[1];
     }
 }

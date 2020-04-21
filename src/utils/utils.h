@@ -10,6 +10,8 @@
 
 namespace utils_rk {
 
+
+    std::pair<float, bool> stringToFloat(const std::string& s);
     std::pair<double, bool> stringToDouble(const std::string& s);
     std::pair<long double, bool> stringToLongDouble(const std::string& s);
 

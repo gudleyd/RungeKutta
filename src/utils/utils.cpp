@@ -6,6 +6,16 @@
 
 namespace utils_rk {
 
+
+    std::pair<float, bool> stringToFloat(const std::string& s) {
+        char* p;
+        float converted = std::strtof(s.c_str(), &p);
+        if (*p)
+            return {0, 0};
+        else
+            return {converted, 1};
+    }
+
     std::pair<double, bool> stringToDouble(const std::string& s) {
         char* p;
         double converted = std::strtod(s.c_str(), &p);

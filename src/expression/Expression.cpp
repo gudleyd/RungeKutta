@@ -7,9 +7,9 @@
 
 namespace rk {
 
-    /*template class Expression<float>;
-    template class Expression<double>;*/
-    template class Expression<long double>;
+    template class Expression<float>;
+//    template class Expression<double>;
+//    template class Expression<long double>;
 
 
     template<typename Value>
@@ -80,7 +80,7 @@ namespace rk {
 
 
     template<typename Value>
-    Value Expression<Value>::evaluate(const std::vector<Value> &varsValues) {
+    Value Expression<Value>::evaluate(const std::vector<Value> &varsValues) const {
         if (this->compiled != nullptr) {
             return this->compiled(varsValues.data());
         }
@@ -121,6 +121,8 @@ namespace rk {
                 }
             }
         }
+        if (!curToken.empty())
+            v.emplace_back(Expression::getToken(curToken));
     }
 
 
