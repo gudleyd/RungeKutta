@@ -45,7 +45,7 @@ namespace rk {
         std::vector<std::shared_ptr<Token<Value>>> expression;
         std::vector<std::string> vars;
         std::pair<Value, bool> (*converter)(const std::string&) = nullptr;
-
+        
         void* dll = nullptr;
         Value (*compiled)(const Value*) = nullptr;
 

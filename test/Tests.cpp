@@ -97,8 +97,106 @@ namespace tests_rk {
         }
     }
 
-    /* run_test() is in development */
+    template<typename ValueType>
+    const void * get_conv_func() {
+         if (typeid(ValueType) == typeid(float)) {
+            return (const void *)utils_rk::stringToFloat;
+        } else if (typeid(ValueType) == typeid(double)) {
+            return  (const void *)utils_rk::stringToDouble;
+        } else if (typeid(ValueType) == typeid(long double)) {
+            return (const void *)utils_rk::stringToLongDouble;
+        } else {
+            throw std::invalid_argument("Incorrect ValueType");
+        }
+    }
 
+    template<typename ValueType>
+    template<class Container>
+    int BasicTest<ValueType>::loadInputFile(const std::string& fileName, Container& data, bool readFlag) {
+        std::ifstream inFile;
+        inFile.open(fileName);
+        if (!inFile.is_open()) {
+            std::cerr << "UNABLE TO OPEN FILE [ " << fileName << " ]\n";
+            return 1;
+        }
+        if (!readFlag) {
+            for (auto it = data.begin(); it != data.end(); ++it) {
+                inFile >> *it;
+            }
+        } else {
+            std::getline(inFile, data.data);
+        }
+        return 0;
+    }
 
+    template<typename ValueType>
+    BasicTest<ValueType>::BasicTest(const std::string& _func, const std::vector<std::string>& _vars, double _delta, 
+                                    const std::vector<std::vector<ValueType>>& _points, const std::vector<ValueType>& _values): 
+                                    expr(), func(_func), vars(_vars), delta(_delta), pos(_points), vals(_values) {
+        this->force_parse();
+    }
+
+    template<typename ValueType>
+    BasicTest<ValueType>::BasicTest(const std::string& _func, const std::vector<std::string>&& _vars, double _delta, 
+                                    const std::vector<std::vector<ValueType>>&& _points, 
+                                    const std::vector<ValueType>&& _values): 
+                                    expr(), func(_func), vars(std::move(_vars)), 
+                                    delta(std::move(_delta)), pos(std::move(_points)), vals(std::move(_values)) {
+        this->force_parse();
+    }
+
+    template<typename ValueType>
+    BasicTest<ValueType>::BasicTest(const std::string& funcFile, const std::vector<std::string>& _vars, double _delta, 
+                                    const std::string& _pointFile, const std::string& _valFile): 
+                                    expr(), vars(_vars), delta(_delta) {
+        if (BasicTest<ValueType>::loadInputFile<std::string>(funcFile, &func, 1))
+            throw std::runtime_error("Unable to load function from file");
+        if (BasicTest<ValueType>::loadInputFile<std::vector<std::vector<ValueType>>>(_pointFile, &pos))
+            throw std::runtime_error("Unable to load points from file");
+        if (BasicTest<ValueType>::loadInputFile<std::vector<ValueType>>(_valFile, &vals))
+            throw std::runtime_error("Unable to load values from file");
+        this->force_parse();
+    }
+
+    template<typename ValueType>
+    void  BasicTest<ValueType>::force_parse() {
+        expr.parse(func, vars, (std::pair<ValueType, bool> (*)(const std::string&))get_conv_func<ValueType>());
+    }
+
+    template<typename ValueType>
+    int BasicTest<ValueType>::run_parse_test(std::ostream& out) {
+        out << "\nTesting parsing for function [" << func << "]\n";
+        out << "expr addr (Debug) [" <<  &expr << "]\n";
+        expr.compile();
+        size_t i = 0, errCount = 0;
+        for (auto it = pos.begin(); it != pos.end(); ++it) {
+            auto tmpVal = expr.evaluate(*it);
+            if (fabs(tmpVal - vals[i]) > delta) {
+                out << "Solution at point [" << i << "] deviates more than delta " << delta << "\n";
+                out << "Expected solution [" << vals[i] << "]\n";
+                out << "Got [" << tmpVal << "]\n";
+                ++errCount;
+            }
+            ++i;
+        }
+        out << "\nFinished test with [" << errCount << "] errors\n\n";
+        return errCount;
+    }
+    
+    template<typename ValueType>
+    int BasicTest<ValueType>::run_solve_test(std::vector<ValueType> initValues, double gridSize, std::ostream& out) {
+        size_t errCount = 0;
+        for (auto it = pos.begin(); it != pos.end(); ++it) {
+            auto res = rk::RKSolve<ValueType>(expr, initValues, *it[1], gridSize);
+            size_t i = 0;
+            for (auto coord = res.begin(); coord != res.end(); ++coord) {
+                if (fabs(*coord - *it[i])) {
+                    out << "Solution at point [" << i << "] deviates more than delta " << delta << "\n";
+                    ++errCount;
+                    break;
+                }
+            }
+        }
+        return errCount;
+    }
 }
-

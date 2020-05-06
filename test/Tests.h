@@ -1,14 +1,15 @@
 #include <chrono>
+#include <stdexcept>
 #include "../src/expression/Expression.h"
 
 
 namespace tests_rk {
     
     enum TestType {
-        BASIC_PARSE_TEST = 0,
-        BASIC_BENCHMARK = 1,
-        LOOP_TEST = 2,
-        LOOP_BENCHMARK = 3
+        BASIC_PARSE = 0,
+        BASIC_SOLVE = 1,
+        LOOP_PARSE = 2,
+        LOOP_SOLVE = 3
     };
 
     using nanosec = std::chrono::nanoseconds;
@@ -48,12 +49,30 @@ namespace tests_rk {
     template <typename measure>
     std::string getSuffix();
 
-    // run_test is not included in this commit (its not functional yet)
-    // Will just open a text document with a bunch of functions
-    // Pick functions randomly, or based on provided arguments and run tests with them
-    //template<typename T>
-    //void run_test(std::string&, std::vector<T>&, TestType);
+    template<typename ValueType>
+    const void * get_conv_func();
+    
+    template<typename ValueType>
+    class BasicTest {
+    public:
+        BasicTest(const std::string&, const std::vector<std::string>&, double, const std::vector<std::vector<ValueType>>&, const std::vector<ValueType>&);
+        BasicTest(const std::string&, const std::vector<std::string>&&, double, const std::vector<std::vector<ValueType>>&&, const std::vector<ValueType>&&);
+        explicit BasicTest(const std::string&, const std::vector<std::string>&, double, const std::string&, const std::string&);
+        int run_parse_test(std::ostream& out = std::cout);
+        int run_solve_test(std::vector<ValueType> initValues, double gridSize = 0.0001, std::ostream& out = std::cout);
+        void force_parse();
+    private:
+        std::string func;
+        std::vector<std::string> vars;
+        rk::Expression<ValueType> expr;
+        double delta;
+        std::vector<std::vector<ValueType>> pos;
+        std::vector<ValueType> vals;
 
+        template<class Container>
+        static int loadInputFile(const std::string&, Container&, bool readFlag=0);
+        
+    };
 
     // TODO: random func generator
     /*

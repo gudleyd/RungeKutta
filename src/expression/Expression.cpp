@@ -173,7 +173,7 @@ namespace rk {
            << "#endif";
         sf.close();
 
-        system("c++ file.cc -o file.so -shared -fPIC");
+        system("c++ file.cc -O3 file.so -shared -fPIC");
 
 #ifndef WIN32
         this->dll = dlopen("file.so", RTLD_LAZY);
