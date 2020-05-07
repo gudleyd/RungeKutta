@@ -99,7 +99,7 @@ namespace rk {
         curToken.reserve(20);
         for (size_t i = 0; i < s.length(); ++i) {
             int c = tolower(s[i]);
-            if (isalnum(c)) {
+            if (isalnum(c) || c == '.') {
                 curToken.push_back(c);
             } else {
                 if (!curToken.empty())
