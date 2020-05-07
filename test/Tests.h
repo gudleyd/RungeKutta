@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include "../src/expression/Expression.h"
 
+#pragma once
 
 namespace tests_rk {
     
