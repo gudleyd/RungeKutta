@@ -160,7 +160,8 @@ namespace rk {
         }
 
         std::string valueName = utils_rk::typeNameToString(typeid(Value).name());
-        std::ofstream sf("file.cc");
+        std::string compileName = utils_rk::randomString(15);
+        std::ofstream sf(compileName + ".cc");
         sf << "#include<math.h>\n"
            << "#ifdef __cplusplus\n"
            << "extern \"C\" {\n"
@@ -173,12 +174,15 @@ namespace rk {
            << "#endif";
         sf.close();
 
-        system("c++ file.cc -o file.so -shared -fPIC");
+        std::string systemCall = "c++ " + compileName + ".cc " + "-o " + compileName + ".so -shared -fPIC";
+        system(systemCall.c_str());
+
+        std::string libName = compileName + ".so";
 
 #ifndef WIN32
-        this->dll = dlopen("file.so", RTLD_LAZY);
+        this->dll = dlopen(libName.c_str(), RTLD_LAZY);
 #else
-        this->dll = LoadLibrary("file.so");
+        this->dll = LoadLibrary(libName.c_str());
 #endif
 
         if (this->dll == nullptr) return false;
