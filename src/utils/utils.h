@@ -18,4 +18,6 @@ namespace utils_rk {
     void replace(std::string& s, const std::string& from, const std::string& to);
 
     std::string typeNameToString(const char* type_name);
+
+    std::string randomString(size_t length);
 }

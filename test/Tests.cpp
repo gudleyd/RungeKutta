@@ -156,18 +156,20 @@ namespace tests_rk {
         if (BasicTest<ValueType>::loadInputFile<std::vector<ValueType>>(_valFile, &vals))
             throw std::runtime_error("Unable to load values from file");
         this->force_parse();
+        
     }
 
     template<typename ValueType>
     void  BasicTest<ValueType>::force_parse() {
-        expr.parse(func, vars, (std::pair<ValueType, bool> (*)(const std::string&))get_conv_func<ValueType>());
+        this->expr.parse(func, vars, (std::pair<ValueType, bool> (*)(const std::string&))get_conv_func<ValueType>());
     }
 
     template<typename ValueType>
     int BasicTest<ValueType>::run_parse_test(std::ostream& out) {
+        out << std::string(32 + func.size(), '-') << '\n';
         out << "\nTesting parsing for function [" << func << "]\n";
-        out << "expr addr (Debug) [" <<  &expr << "]\n";
-        expr.compile();
+        this->expr.compile();
+        out << "expr addr (Debug) [" <<  &(this->expr) << "];\n";
         size_t i = 0, errCount = 0;
         for (auto it = pos.begin(); it != pos.end(); ++it) {
             auto tmpVal = expr.evaluate(*it);
@@ -179,24 +181,30 @@ namespace tests_rk {
             }
             ++i;
         }
-        out << "\nFinished test with [" << errCount << "] errors\n\n";
+        out << "\nFinished test with [" << errCount << "] errors\n";
+        out << std::string(32 + func.size(), '-') << "\n\n";
         return errCount;
     }
     
     template<typename ValueType>
     int BasicTest<ValueType>::run_solve_test(std::vector<ValueType> initValues, double gridSize, std::ostream& out) {
+        this->expr.compile();
         size_t errCount = 0;
+        size_t i = 0;
+        out << std::string(32 + func.size(), '-') << '\n';
+        out << "\nTesting RKSolve for function [" << func << "]\n";
         for (auto it = pos.begin(); it != pos.end(); ++it) {
-            auto res = rk::RKSolve<ValueType>(expr, initValues, *it[1], gridSize);
-            size_t i = 0;
-            for (auto coord = res.begin(); coord != res.end(); ++coord) {
-                if (fabs(*coord - *it[i])) {
-                    out << "Solution at point [" << i << "] deviates more than delta " << delta << "\n";
-                    ++errCount;
-                    break;
-                }
+            auto res = rk::RKSolve<ValueType>(expr, initValues, (*it)[0], gridSize);
+            if ( fabs(res[1] - ((*it).back())) > delta) {
+                out << "Solution at point [" << i << "] deviates more than delta " << delta << "\n";
+                out << "Expected solution: [" << ((*it).back()) << "]\n";
+                out << "Got: [" << res[0] << ", "<< res[1] << "]\n\n";
+                ++errCount;
             }
+            ++i;
         }
+        out << "\nFinished test with [" << errCount << "] errors\n";
+        out << std::string(32 + func.size(), '-') << "\n\n";
         return errCount;
     }
 }

@@ -2,6 +2,7 @@
 // Created by Ivan on 19.04.2020.
 //
 
+#include <algorithm>
 #include "utils.h"
 
 namespace utils_rk {
@@ -50,6 +51,22 @@ namespace utils_rk {
         std::unique_ptr<char[], void (*)(void*)> result(
                 abi::__cxa_demangle(mangled, nullptr, nullptr, &status), std::free);
         return result ? std::string(result.get()) : "error occurred";
+    }
+
+    std::string randomString(size_t length)
+    {
+        auto randchar = []() -> char
+        {
+            const char charset[] =
+                    "0123456789"
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    "abcdefghijklmnopqrstuvwxyz";
+            const size_t max_index = (sizeof(charset) - 1);
+            return charset[rand() % max_index];
+        };
+        std::string str(length,0);
+        std::generate_n(str.begin(), length, randchar);
+        return str;
     }
 
 }

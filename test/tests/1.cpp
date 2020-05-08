@@ -20,6 +20,7 @@ int mass_test_1(std::ostream& out, std::ostream& logFile) {
 
         size_t tmpErrCount = 0;
         const double pi = 3.141592653589793;
+        const double e = 2.718281828459046;
         out << "\nRunning parse tests...\n";
         {
             tests_rk::BasicTest<float> bTest0("5 + x", {"x"}, 0.0001, {{0}, {1}, {-1}, {0.5}, {-0.5}, {5}, {-5}}, 
@@ -130,6 +131,23 @@ int mass_test_1(std::ostream& out, std::ostream& logFile) {
             {rand_float() , rand_float(), rand_float(), rand_float(), rand_float()}}, 
             {0, 0, 0, 0, 0, 0, 0, 0, 0});
             tmpErrCount += bTest17.run_parse_test(logFile);
+        }
+        {
+            tests_rk::BasicTest<float> bTest18("0.5 * (x + (y + z) - y - (x + z)) * (z * (-w))", {"x", "y", "z", "v", "w"}, 0.000001, 
+            {{0, 0, 0, 0, 0}, {1, rand_float(), rand_float(), rand_float(), rand_float()}, 
+            {-1, rand_float(), rand_float(), rand_float(), rand_float()}, {2, 0, 0, 1, 2}, 
+            {-2, rand_float(), rand_float(), rand_float(), rand_float()}, {3, 5, 2, 1, 9}, 
+            {-3, rand_float(), rand_float(), rand_float(), rand_float()}, 
+            {0.5, rand_float(), rand_float(), rand_float(), rand_float()}, 
+            {rand_float() , rand_float(), rand_float(), rand_float(), rand_float()}}, 
+            {0, 0, 0, 0, 0, 0, 0, 0, 0});
+            tmpErrCount += bTest18.run_parse_test(logFile);
+        }
+        {
+            tests_rk::BasicTest<float> bTest19("pow(" + std::to_string(e) +", x)", {"x"}, 0.001, 
+            {{0}, {1}, {-1}, {0.5}, {-0.5}, {1.5}, {2}}, 
+            {1, e, 1.0/e, 1.64872, 0.606531, 4.48169, e * e});
+            tmpErrCount += bTest19.run_parse_test(logFile);
         }
         if (tmpErrCount > 0)
             out << "\nTotal errors: " << tmpErrCount << "\n";

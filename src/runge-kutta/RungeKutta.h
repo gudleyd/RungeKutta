@@ -17,10 +17,31 @@ namespace rk {
                                 std::vector<Value> initValues,
                                 Value at,
                                 Value h = 0.001) {
-        auto n = (size_t)((at - initValues[0]) / h);
+        auto diff = (at - initValues[0]); 
+        /* 
+            This is needed in cases where there is no reason to solve
+            since combined float error will just result in a random result
+            instead of an actual solution 
+            (e.g. 1.0... - 1.0... < 0 and we run for UINT32_MAX iterations for no reason)
+        */
+        if (fabs(diff) < h)
+            return std::move(initValues);
+        // Algorithm does not apply in this case
+        else if (diff < 0)
+            throw std::invalid_argument("Basic RKSolve method does not compute solutions at points left of initValue");
+        uint64_t n = (uint64_t)(diff / h) + 1;
+        /*
+            Cuts off cases where the algorithm doesn't converge propperly
+
+            With so many iterations it is gurantied that the
+            result won't be an actual solution
+        */
+        if (n > (1llu << 20)) {
+            n = 1llu << 20;
+        }
         Value k1, k2, k3, k4;
         Value frac = (Value(1) / Value(6));
-        for (size_t i = 1; i <= n; ++i) {
+        for (uint64_t i = 1; i <= n; ++i) {
             k1 = h * function.evaluate(initValues);
             initValues[0] += 0.5 * h;
             initValues[1] += 0.5 * k1;

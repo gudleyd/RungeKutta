@@ -5,6 +5,7 @@
 #include "src/runge-kutta/RungeKutta.h"
 #include "test/Tests.h"
 #include "test/tests/1.cpp"
+#include "test/tests/2.cpp"
 
 int main() {
     rk::Expression<float> p;
@@ -35,7 +36,7 @@ int main() {
         {
             tests_rk::OverkillTimer<50> timer2("TEST TIMER 2");
             for (size_t i = 0; i < n; ++i){
-                auto result = rk::RKSolve<float>(p, {0, 1}, 10, 0.0001)[1];
+                auto result = rk::RKSolve<float>(p, {0, 1}, 10, 0.00001)[1];
                 result += 1;
                 timer2.reset();
             }
@@ -46,7 +47,9 @@ int main() {
     if (logOut.is_open())
         mass_test_1(std::cout, logOut);
     logOut.close();
-    
+    logOut.open("../test/tests/test2.log");
+    if (logOut.is_open())
+        mass_test_2(std::cout, logOut);
     return 0;
 }
 
