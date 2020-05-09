@@ -6,6 +6,7 @@
 #include "test/Tests.h"
 #include "test/tests/1.cpp"
 #include "test/tests/2.cpp"
+#include "test/tests/3.cpp"
 
 int main() {
     rk::Expression<float> p;
@@ -47,9 +48,17 @@ int main() {
     if (logOut.is_open())
         mass_test_1(std::cout, logOut);
     logOut.close();
+
     logOut.open("../test/tests/test2.log");
     if (logOut.is_open())
         mass_test_2(std::cout, logOut);
+    logOut.close();
+
+    logOut.open("../test/tests/test3.log");
+    if (logOut.is_open())
+        mass_test_3(std::cout, logOut);
+    logOut.close();
+
     return 0;
 }
 

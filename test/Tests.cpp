@@ -207,4 +207,73 @@ namespace tests_rk {
         out << std::string(32 + func.size(), '-') << "\n\n";
         return errCount;
     }
+    template<typename ValueType>
+    void SystemTest<ValueType>::force_parse() {
+        for (size_t i = 0; i < funcs.size(); ++i){
+            this->exprs[i].parse(funcs[i], vars, (std::pair<ValueType, bool> (*)(const std::string&))get_conv_func<ValueType>());
+        }
+    }
+
+    template<typename ValueType>
+    SystemTest<ValueType>::SystemTest(const std::vector<std::string>& _funcs, const std::vector<std::string>& _vars, double _delta, 
+                                    const std::vector<std::vector<ValueType>>& _points,  const std::vector<std::vector<ValueType>>& _values): 
+                                    exprs(_funcs.size()), funcs(_funcs), vars(_vars), delta(_delta), pos(_points), vals(_values) {
+        this->force_parse();
+    }
+
+    template<typename ValueType>
+    int SystemTest<ValueType>::run_solve_test(std::vector<ValueType> initValues, double gridSize, std::ostream& out) {
+        for (auto it = this->exprs.begin(); it != this->exprs.end(); ++it) {
+            (*it).compile();
+        }
+        size_t errCount = 0;
+        
+
+        std::vector<std::shared_ptr<rk::Expression<ValueType>>> tmp;
+        tmp.reserve(funcs.size());
+
+        out << std::string(32 + funcs[0].size(), '-') << '\n';
+        out << "\nTesting RKSolve for functions:\n";
+
+        size_t i = 0;
+        for (auto it = this->funcs.begin(); it != funcs.end(); ++it) {
+            out << "  [ " << *it << " ]\n";
+            tmp.push_back(std::make_shared<rk::Expression<ValueType>>(exprs[i]));
+            ++i;
+        }
+        out << '\n';
+        i = 0;
+        for (auto it = pos.begin(); it != pos.end(); ++it) {
+            auto res = rk::RKSolveSystem<ValueType>(tmp, initValues, (*it)[0], gridSize);
+            for (size_t j = 1; j < res.size(); ++j) {
+                if (fabs((*it)[j] - res[j]) > delta) {
+                    ++errCount;
+                    out << "Solution at point [" << i << "] deviates more than delta " << delta << "\n";
+                    out << "Expected solution:\n[ ";
+                    for (size_t k = 0; k < (*it).size(); ++k) {
+                        out << (*it)[k];
+                        if (k != res.size() - 1)
+                            out << ", ";
+                        else
+                            out << " ]\n";
+                    }
+                    out << "Got:\n[ ";
+                    for (size_t k = 0; k < res.size(); ++k) {
+                        out << res[k];
+                        if (k != res.size() - 1)
+                            out << ", ";
+                        else
+                            out << " ]\n\n";
+                    }
+                    break;
+                }
+            }
+            ++i;
+        }
+        tmp.clear();
+        out << "\nFinished test with [" << errCount << "] errors\n";
+        out << std::string(32 + funcs[0].size(), '-') << "\n\n";
+        return errCount;
+    }
+
 }

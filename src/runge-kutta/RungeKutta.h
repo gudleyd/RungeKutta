@@ -11,7 +11,7 @@
 #include "../utils/utils.h"
 
 namespace rk {
-
+    // Edited by TV 09.05.2020
     template<typename Value>
     std::vector<Value> RKSolve(const Expression<Value>& function,
                                 std::vector<Value> initValues,
@@ -28,17 +28,8 @@ namespace rk {
             return std::move(initValues);
         // Algorithm does not apply in this case
         else if (diff < 0)
-            throw std::invalid_argument("Basic RKSolve method does not compute solutions at points left of initValue");
-        uint64_t n = (uint64_t)(diff / h) + 1;
-        /*
-            Cuts off cases where the algorithm doesn't converge propperly
-
-            With so many iterations it is gurantied that the
-            result won't be an actual solution
-        */
-        if (n > (1llu << 20)) {
-            n = 1llu << 20;
-        }
+            throw std::invalid_argument("RKSolve method does not compute solutions at points left of initValue");
+        uint64_t n = (uint64_t)(((long double)diff / h) + 0.5);
         Value k1, k2, k3, k4;
         Value frac = (Value(1) / Value(6));
         for (uint64_t i = 1; i <= n; ++i) {
@@ -55,34 +46,44 @@ namespace rk {
         }
         return std::move(initValues);
     }
-
+    // Edited by TV 09.05.2020
     template<typename Value>
     std::vector<Value> RKSolveSystem(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
                                 std::vector<Value> initValues,
                                 Value at,
                                 Value h = 0.001) {
-        auto n = (size_t)((at - initValues[0]) / h);
+        // Same Edit as for RKSolve
+        auto diff = (at - initValues[0]);
+        if (fabs(diff) < h)
+            return std::move(initValues);
+        else if (diff < 0)
+            throw std::invalid_argument("RKSolveSystem method does not compute solutions at points left of initValue");
+        uint64_t n = (uint64_t)(((long double)diff / h) + 0.5);
         std::vector<std::vector<Value>> k(functions.size(), std::vector<Value>(4));
+        std::vector<Value> tmpValues(initValues);
         Value frac = (Value(1) / Value(6));
-        for (size_t i = 1; i <= n; ++i) {
+        for (uint64_t i = 1; i <= n; ++i) {
             for (size_t t = 0; t < functions.size(); ++t)
-                k[t][0] = h * functions[t]->evaluate(initValues);
-            initValues[0] += 0.5 * h;
+                k[t][0] = h * functions[t]->evaluate(tmpValues);
+            tmpValues[0] += 0.5 * h;
             for (size_t t = 0; t < functions.size(); ++t)
-                initValues[t + 1] += 0.5 * k[t][0];
+                tmpValues[t + 1] = initValues[t + 1] + 0.5 * k[t][0];
             for (size_t t = 0; t < functions.size(); ++t)
-                k[t][1] = h * functions[t]->evaluate(initValues);
+                k[t][1] = h * functions[t]->evaluate(tmpValues);
             for (size_t t = 0; t < functions.size(); ++t)
-                initValues[t + 1] += 0.5 * k[t][1] - 0.5 * k[t][0];
+                tmpValues[t + 1] = initValues[t + 1] + 0.5 * k[t][1];
             for (size_t t = 0; t < functions.size(); ++t)
-                k[t][2] = h * functions[t]->evaluate(initValues);
-            initValues[0] += 0.5 * h;
+                k[t][2] = h * functions[t]->evaluate(tmpValues);
+            tmpValues[0] += 0.5 * h;
             for (size_t t = 0; t < functions.size(); ++t)
-                initValues[t + 1] += k[t][2] - 0.5 * k[t][1];
+                tmpValues[t + 1] = initValues[t + 1] +  k[t][2];
             for (size_t t = 0; t < functions.size(); ++t)
-                k[t][3] = h * functions[t]->evaluate(initValues);
-            for (size_t t = 0; t < functions.size(); ++t)
-                initValues[t + 1] += frac * (k[t][0] + 2 * k[t][1] + 2 * k[t][2] + k[t][3]) - k[t][2];
+                k[t][3] = h * functions[t]->evaluate(tmpValues);
+            for (size_t t = 0; t < functions.size(); ++t) {
+                auto t1 = t + 1;
+                initValues[t1] = initValues[t1] +  frac * (k[t][0] + 2 * k[t][1] + 2 * k[t][2] + k[t][3]);
+            }
+            initValues[0] = tmpValues[0];
         }
         return std::move(initValues);
     }
