@@ -187,14 +187,15 @@ namespace tests_rk {
     }
     
     template<typename ValueType>
-    int BasicTest<ValueType>::run_solve_test(std::vector<ValueType> initValues, double gridSize, std::ostream& out) {
+    int BasicTest<ValueType>::run_solve_test(std::vector<ValueType> initValues, double gridSize, std::ostream& out,
+                                            std::vector<ValueType> (*solver)(const rk::Expression<ValueType>&, std::vector<ValueType>, ValueType, ValueType)) {
         this->expr.compile();
         size_t errCount = 0;
         size_t i = 0;
         out << std::string(32 + func.size(), '-') << '\n';
         out << "\nTesting RKSolve for function [" << func << "]\n";
         for (auto it = pos.begin(); it != pos.end(); ++it) {
-            auto res = rk::RKSolve<ValueType>(expr, initValues, (*it)[0], gridSize);
+            auto res = solver(expr, initValues, (*it)[0], gridSize);
             if ( fabs(res[1] - ((*it).back())) > delta) {
                 out << "Solution at point [" << i << "] deviates more than delta " << delta << "\n";
                 out << "Expected solution: [" << ((*it).back()) << "]\n";
@@ -207,6 +208,9 @@ namespace tests_rk {
         out << std::string(32 + func.size(), '-') << "\n\n";
         return errCount;
     }
+
+
+
     template<typename ValueType>
     void SystemTest<ValueType>::force_parse() {
         for (size_t i = 0; i < funcs.size(); ++i){
@@ -245,6 +249,63 @@ namespace tests_rk {
         i = 0;
         for (auto it = pos.begin(); it != pos.end(); ++it) {
             auto res = rk::RKSolveSystem<ValueType>(tmp, initValues, (*it)[0], gridSize);
+            for (size_t j = 1; j < res.size(); ++j) {
+                if (fabs((*it)[j] - res[j]) > delta) {
+                    ++errCount;
+                    out << "Solution at point [" << i << "] deviates more than delta " << delta << "\n";
+                    out << "Expected solution:\n[ ";
+                    for (size_t k = 0; k < (*it).size(); ++k) {
+                        out << (*it)[k];
+                        if (k != res.size() - 1)
+                            out << ", ";
+                        else
+                            out << " ]\n";
+                    }
+                    out << "Got:\n[ ";
+                    for (size_t k = 0; k < res.size(); ++k) {
+                        out << res[k];
+                        if (k != res.size() - 1)
+                            out << ", ";
+                        else
+                            out << " ]\n\n";
+                    }
+                    break;
+                }
+            }
+            ++i;
+        }
+        tmp.clear();
+        out << "\nFinished test with [" << errCount << "] errors\n";
+        out << std::string(32 + funcs[0].size(), '-') << "\n\n";
+        return errCount;
+    }
+    template<typename ValueType>
+    int SystemTest<ValueType>::run_solve_test(std::vector<ValueType> initValues, 
+                           const std::vector<std::vector<ValueType>> &butcherTable, 
+                           double gridSize,
+                           std::ostream& out) {
+        for (auto it = this->exprs.begin(); it != this->exprs.end(); ++it) {
+            (*it).compile();
+        }
+        size_t errCount = 0;
+        
+
+        std::vector<std::shared_ptr<rk::Expression<ValueType>>> tmp;
+        tmp.reserve(funcs.size());
+
+        out << std::string(32 + funcs[0].size(), '-') << '\n';
+        out << "\nTesting RKSolve for functions:\n";
+
+        size_t i = 0;
+        for (auto it = this->funcs.begin(); it != funcs.end(); ++it) {
+            out << "  [ " << *it << " ]\n";
+            tmp.push_back(std::make_shared<rk::Expression<ValueType>>(exprs[i]));
+            ++i;
+        }
+        out << '\n';
+        i = 0;
+        for (auto it = pos.begin(); it != pos.end(); ++it) {
+            auto res = rk::RKMasterSolver<ValueType>(tmp, initValues, (*it)[0], gridSize, butcherTable);
             for (size_t j = 1; j < res.size(); ++j) {
                 if (fabs((*it)[j] - res[j]) > delta) {
                     ++errCount;

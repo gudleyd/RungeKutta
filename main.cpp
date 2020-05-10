@@ -7,6 +7,7 @@
 #include "test/tests/1.cpp"
 #include "test/tests/2.cpp"
 #include "test/tests/3.cpp"
+#include "test/tests/SolverTest1.cpp"
 
 int main() {
     rk::Expression<float> p;
@@ -51,12 +52,18 @@ int main() {
 
     logOut.open("../test/tests/test2.log");
     if (logOut.is_open())
-        mass_test_2(std::cout, logOut);
+        mass_test_2(rk::RKSolve<long double>, std::cout, logOut);
     logOut.close();
 
     logOut.open("../test/tests/test3.log");
     if (logOut.is_open())
         mass_test_3(std::cout, logOut);
+    logOut.close();
+
+    logOut.open("../test/tests/mastersolver_1.log");
+    if (logOut.is_open())
+        uni_test_1(std::cout, logOut,  
+        {{0, 0}, {0.5, 0.5}, {0.5, 0, 0.5}, {1, 0, 0, 1}, {0, 1.0/6, 1.0/3, 1.0/3, 1.0/6}});
     logOut.close();
 
     return 0;

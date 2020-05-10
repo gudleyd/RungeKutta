@@ -60,7 +60,8 @@ namespace tests_rk {
         BasicTest(const std::string&, const std::vector<std::string>&&, double, const std::vector<std::vector<ValueType>>&&, const std::vector<ValueType>&&);
         explicit BasicTest(const std::string&, const std::vector<std::string>&, double, const std::string&, const std::string&);
         int run_parse_test(std::ostream& out = std::cout);
-        int run_solve_test(std::vector<ValueType> initValues, double gridSize = 0.0001, std::ostream& out = std::cout);
+        int run_solve_test(std::vector<ValueType> initValues, double gridSize = 0.0001, std::ostream& out = std::cout, 
+                           std::vector<ValueType> (*solver)(const rk::Expression<ValueType>&, std::vector<ValueType>, ValueType, ValueType) = rk::RKSolve<ValueType>);
         void force_parse();
     private:
         std::string func;
@@ -82,6 +83,10 @@ namespace tests_rk {
                    const std::vector<std::vector<ValueType>>&, const std::vector<std::vector<ValueType>>&);
         void force_parse();
         int run_solve_test(std::vector<ValueType> initValues, double gridSize = 0.0001, std::ostream& out = std::cout);
+        int run_solve_test(std::vector<ValueType> initValues, 
+                           const std::vector<std::vector<ValueType>> &butcherTable, 
+                           double gridSize = 0.0001,
+                           std::ostream& out = std::cout);
     private:
         std::vector<std::string> funcs;
         std::vector<std::string> vars;
