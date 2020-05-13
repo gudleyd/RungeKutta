@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include "../../src/expression/Expression.h"
-#include "../../src/runge-kutta/RungeKutta.h"
+#include "../../src/runge-kutta/RungeKuttaMethods.h"
 #include "../Tests.h"
 
 int uni_test_1(std::ostream& out, 

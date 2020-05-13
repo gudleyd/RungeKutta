@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include "../../src/expression/Expression.h"
-#include "../../src/runge-kutta/RungeKutta.h"
+#include "../../src/runge-kutta/RungeKuttaMethods.h"
 #include "../Tests.h"
 
 int mass_test_2(std::vector<long double> (*solver)(const rk::Expression<long double>&, std::vector<long double>, long double, long double),

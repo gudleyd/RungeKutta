@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include "../../src/expression/Expression.h"
-#include "../../src/runge-kutta/RungeKutta.h"
+#include "../../src/runge-kutta/RungeKuttaMethods.h"
 #include "../Tests.h"
 
 int mass_test_3(std::ostream& out, std::ostream& logFile) {

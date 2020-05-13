@@ -8,7 +8,7 @@
 #include <chrono>
 
 #include "../src/expression/Expression.h"
-#include "../src/runge-kutta/RungeKutta.h"
+#include "../src/runge-kutta/RungeKuttaMethods.h"
 #include "Tests.h"
 #include "tests/1.cpp"
 #include "tests/2.cpp"
