@@ -208,6 +208,17 @@ public:
     [[nodiscard]] std::string cname() const override { return "pow"; }
 };
 
+template<typename Value>
+class CosToken: public FunctionToken<Value> {
+public:
+    void evaluate(std::stack<Value>& s, const std::vector<Value>& vars) const override {
+        Value a = s.top();
+        s.pop();
+        s.push(std::cos(a));
+    }
+    [[nodiscard]] std::string cname() const override { return "cos"; }
+};
+
 
 /*
  * Util Functions

@@ -13,7 +13,7 @@ namespace rk {
 
 
     template<typename Value>
-    const std::map<std::string, std::shared_ptr<Token<Value>>> Expression<Value>::tokens = {
+    std::map<std::string, std::shared_ptr<Token<Value>>> Expression<Value>::tokens = {
             {"*",   std::make_shared<MulToken<Value>>()},
             {"+",   std::make_shared<SumToken<Value>>()},
             {"-",   std::make_shared<SubToken<Value>>()},
@@ -23,7 +23,8 @@ namespace rk {
             {")",   std::make_shared<RightParenToken<Value>>()},
             {",",   std::make_shared<DelimiterToken<Value>>()},
             {"sin", std::make_shared<SinToken<Value>>()},
-            {"pow", std::make_shared<PowToken<Value>>()}
+            {"pow", std::make_shared<PowToken<Value>>()},
+            {"cos", std::make_shared<CosToken<Value>>()}
     };
     
     template<typename Value>
@@ -78,8 +79,22 @@ namespace rk {
             mainQueue.push_back(opStack.top());
             opStack.pop();
         }
+        fromString = true;
+        this->compiled = nullptr;
     }
 
+    template<typename Value>
+    void Expression<Value>::setFunction(Value (*function)(const Value *)) {
+        this->fromString = false;
+        this->compiled = function;
+    }
+
+    template<typename Value>
+    void Expression<Value>::addFunctionToken(const std::string& name, std::shared_ptr<FunctionToken<Value>> token) {
+        if (Expression<Value>::tokens.find(name) != Expression<Value>::tokens.end())
+            throw std::logic_error("Function with this name already exists");
+        Expression<Value>::tokens[name] = token;
+    }
 
     template<typename Value>
     Value Expression<Value>::evaluate(const std::vector<Value> &varsValues) const {
@@ -149,6 +164,9 @@ namespace rk {
 
     template<typename Value>
     bool Expression<Value>::compile() {
+        if (!this->fromString)
+            return true;
+
         if (this->compiled != nullptr && Expression<Value>::dlls[compileName]-- == 0) {
 #ifndef WIN32
             dlclose(this->dll);
@@ -239,7 +257,7 @@ namespace rk {
 
     template<typename Value>
     Expression<Value>::~Expression() {
-        if (this->compiled != nullptr && Expression<Value>::dlls[compileName]-- == 0) {
+        if (this->fromString && this->compiled != nullptr && Expression<Value>::dlls[compileName]-- == 0) {
 #ifndef WIN32
             dlclose(this->dll);
 #else
