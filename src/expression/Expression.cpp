@@ -36,8 +36,6 @@ namespace rk {
                                   std::pair<Value, bool> (*f)(const std::string &)) {
         this->vars = variables;
         this->converter = f;
-        this->compiled = nullptr;
-        this->dll = nullptr;
 
         this->expression.clear();
         this->mainQueue.clear();
@@ -79,14 +77,30 @@ namespace rk {
             mainQueue.push_back(opStack.top());
             opStack.pop();
         }
-        fromString = true;
+        if (this->fromString && this->compiled != nullptr && --Expression<Value>::dlls[compileName] == 0) {
+#ifndef WIN32
+            dlclose(this->dll);
+#else
+            FreeLibrary((HINSTANCE) this->dll);
+#endif
+        }
+        this->fromString = true;
         this->compiled = nullptr;
+        this->dll = nullptr;
     }
 
     template<typename Value>
     void Expression<Value>::setFunction(Value (*function)(const Value *)) {
+        if (this->fromString && this->compiled != nullptr && --Expression<Value>::dlls[compileName] == 0) {
+#ifndef WIN32
+            dlclose(this->dll);
+#else
+            FreeLibrary((HINSTANCE) this->dll);
+#endif
+        }
         this->fromString = false;
         this->compiled = function;
+        this->dll = nullptr;
     }
 
     template<typename Value>
@@ -167,7 +181,7 @@ namespace rk {
         if (!this->fromString)
             return true;
 
-        if (this->compiled != nullptr && Expression<Value>::dlls[compileName]-- == 0) {
+        if (this->compiled != nullptr && --Expression<Value>::dlls[compileName] == 0) {
 #ifndef WIN32
             dlclose(this->dll);
 #else
@@ -185,8 +199,8 @@ namespace rk {
         }
 
         std::string valueName = utils_rk::typeNameToString(typeid(Value).name());
-        compileName = utils_rk::randomString(15);
-        std::ofstream sf(compileName + ".cc");
+        compileName = utils_rk::randomString(128);
+        std::ofstream sf("./" + compileName + ".cc");
         sf << "#include<math.h>\n"
            << "#ifdef __cplusplus\n"
            << "extern \"C\" {\n"
@@ -199,7 +213,7 @@ namespace rk {
            << "#endif";
         sf.close();
 
-        std::string systemCall = "c++ " + compileName + ".cc " + "-o " + compileName + ".so -shared -fPIC";
+        std::string systemCall = "c++ ./" + compileName + ".cc " + "-o ./" + compileName + ".so -shared -fPIC";
         int res = system(systemCall.c_str());
         if (res != 0) {
             return false;
@@ -222,6 +236,7 @@ namespace rk {
 #endif
         if (this->compiled)
             Expression<Value>::dlls[compileName] = 1;
+
         return (this->compiled != nullptr);
     }
 
@@ -257,12 +272,14 @@ namespace rk {
 
     template<typename Value>
     Expression<Value>::~Expression() {
-        if (this->fromString && this->compiled != nullptr && Expression<Value>::dlls[compileName]-- == 0) {
+        if (this->fromString && this->compiled != nullptr && --Expression<Value>::dlls[compileName] == 0) {
 #ifndef WIN32
             dlclose(this->dll);
 #else
             FreeLibrary((HINSTANCE) this->dll);
 #endif
+            remove(("./" + compileName + ".so").c_str());
+            remove(("./" + compileName + ".cc").c_str());
         }
     }
 

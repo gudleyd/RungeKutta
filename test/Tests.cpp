@@ -137,10 +137,10 @@ namespace tests_rk {
     }
 
     template<typename ValueType>
-    BasicTest<ValueType>::BasicTest(const std::string& _func, const std::vector<std::string>&& _vars, double _delta, 
-                                    const std::vector<std::vector<ValueType>>&& _points, 
-                                    const std::vector<ValueType>&& _values): 
-                                    expr(), func(_func), vars(std::move(_vars)), 
+    BasicTest<ValueType>::BasicTest(const std::string& _func, const std::vector<std::string>&& _vars, double _delta,
+                                    const std::vector<std::vector<ValueType>>&& _points,
+                                    const std::vector<ValueType>&& _values):
+                                    expr(), func(_func), vars(std::move(_vars)),
                                     delta(std::move(_delta)), pos(std::move(_points)), vals(std::move(_values)) {
         this->force_parse();
     }

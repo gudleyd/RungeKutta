@@ -30,7 +30,6 @@
 
 namespace rk {
 
-
     template<typename Value>
     class Expression {
     public:
