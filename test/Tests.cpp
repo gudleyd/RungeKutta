@@ -149,7 +149,7 @@ namespace tests_rk {
     BasicTest<ValueType>::BasicTest(const std::string& funcFile, const std::vector<std::string>& _vars, double _delta, 
                                     const std::string& _pointFile, const std::string& _valFile): 
                                     expr(), vars(_vars), delta(_delta) {
-        if (BasicTest<ValueType>::loadInputFile<std::string>(funcFile, &func, 1))
+        if (BasicTest<ValueType>::loadInputFile<std::string>(funcFile, func, 1))
             throw std::runtime_error("Unable to load function from file");
         if (BasicTest<ValueType>::loadInputFile<std::vector<std::vector<ValueType>>>(_pointFile, &pos))
             throw std::runtime_error("Unable to load points from file");

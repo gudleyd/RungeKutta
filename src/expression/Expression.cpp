@@ -182,9 +182,12 @@ namespace rk {
         sf.close();
 
         std::string systemCall = "c++ " + compileName + ".cc " + "-o " + compileName + ".so -shared -fPIC";
-        system(systemCall.c_str());
+        int res = system(systemCall.c_str());
+        if (res != 0) {
+            return false;
+        }
 
-        std::string libName = compileName + ".so";
+        std::string libName = "./" + compileName + ".so";
 
 #ifndef WIN32
         this->dll = dlopen(libName.c_str(), RTLD_LAZY);
@@ -195,11 +198,10 @@ namespace rk {
         if (this->dll == nullptr) return false;
 
 #ifndef WIN32
-        this->compiled = (Value (*)(const Value*))dlsym(this->dll, "compiled");
+        this->compiled = (Value (*)(const Value *))dlsym(this->dll, "compiled");
 #else
         this->compiled = (Value (*)(const Value *)) GetProcAddress((HINSTANCE) this->dll, "compiled");
 #endif
-
         if (this->compiled)
             Expression<Value>::dlls[compileName] = 1;
         return (this->compiled != nullptr);

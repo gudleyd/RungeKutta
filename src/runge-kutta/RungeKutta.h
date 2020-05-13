@@ -141,7 +141,7 @@ namespace rk {
 
     //
     // |                            |
-    // |    Convinience functions   |
+    // |    Convenience functions   |
     // |                            |
     //
 
