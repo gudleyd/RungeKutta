@@ -205,6 +205,25 @@ namespace rk {
         return (this->compiled != nullptr);
     }
 
+    template<typename Value>
+    Expression<Value>::Expression(const Expression<Value> &p) {
+        this->compileName = p.compileName;
+        this->dll = p.dll;
+        this->mainQueue = p.mainQueue;
+        this->expression = p.expression;
+        this->vars = p.vars;
+        this->converter = p.converter;
+        this->compiled = p.compiled;
+        if (p.dll != nullptr)
+            Expression::dlls[p.compileName]++;
+    }
+
+    template<typename Value>
+    Expression<Value>& Expression<Value>::operator=(Expression<Value> other) {
+        *this(other);
+        return *this;
+    }
+
 
     template<typename Value>
     Expression<Value>::Expression(const Expression<Value> &p) {
