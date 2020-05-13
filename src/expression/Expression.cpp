@@ -25,7 +25,9 @@ namespace rk {
             {"sin", std::make_shared<SinToken<Value>>()},
             {"pow", std::make_shared<PowToken<Value>>()}
     };
-
+    
+    template<typename Value>
+    std::map<std::string, size_t> Expression<Value>::dlls{};
 
     template<typename Value>
     void Expression<Value>::parse(std::string s,
@@ -147,8 +149,13 @@ namespace rk {
 
     template<typename Value>
     bool Expression<Value>::compile() {
-        if (this->compiled != nullptr)
-            return true;
+        if (this->compiled != nullptr && Expression<Value>::dlls[compileName]-- == 0) {
+#ifndef WIN32
+            dlclose(this->dll);
+#else
+            FreeLibrary((HINSTANCE) this->dll);
+#endif
+        }
 
         std::string functionString;
         for (auto &t: this->expression) {
@@ -160,7 +167,7 @@ namespace rk {
         }
 
         std::string valueName = utils_rk::typeNameToString(typeid(Value).name());
-        std::string compileName = utils_rk::randomString(15);
+        compileName = utils_rk::randomString(15);
         std::ofstream sf(compileName + ".cc");
         sf << "#include<math.h>\n"
            << "#ifdef __cplusplus\n"
@@ -193,17 +200,50 @@ namespace rk {
         this->compiled = (Value (*)(const Value *)) GetProcAddress((HINSTANCE) this->dll, "compiled");
 #endif
 
+        if (this->compiled)
+            Expression<Value>::dlls[compileName] = 1;
         return (this->compiled != nullptr);
     }
 
 
     template<typename Value>
+    Expression<Value>::Expression(const Expression<Value> &p) {
+        this->compileName = p.compileName;
+        this->dll = p.dll;
+        this->mainQueue = p.mainQueue;
+        this->expression = p.expression;
+        this->vars = p.vars;
+        this->converter = p.converter;
+        this->compiled = p.compiled;
+        if (p.dll != nullptr)
+            Expression<Value>::dlls[p.compileName]++;
+    }
+
+    template<typename Value>
+    Expression<Value>& Expression<Value>::operator=(Expression<Value> &other) {
+        if(&other == this)
+            return *this;
+        Expression<Value> tmp(other);
+        std::swap(this->compileName, tmp.compileName);
+        std::swap(this->dll, tmp.dll);
+        std::swap(this->mainQueue, tmp.mainQueue);
+        std::swap(this->expression, tmp.expression);
+        std::swap(this->vars, tmp.vars);
+        std::swap(this->converter, tmp.converter);
+        std::swap(this->compiled, tmp.compiled);
+        return *this;
+    }
+
+
+    template<typename Value>
     Expression<Value>::~Expression() {
+        if (this->compiled != nullptr && Expression<Value>::dlls[compileName]-- == 0) {
 #ifndef WIN32
-        dlclose(this->dll);
+            dlclose(this->dll);
 #else
-        FreeLibrary((HINSTANCE) this->dll);
+            FreeLibrary((HINSTANCE) this->dll);
 #endif
+        }
     }
 
 }

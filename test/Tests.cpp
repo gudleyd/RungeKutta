@@ -209,6 +209,31 @@ namespace tests_rk {
         return errCount;
     }
 
+    template<typename ValueType>
+    int BasicTest<ValueType>::run_solve_test(std::vector<ValueType> initValues,
+                                            const std::vector<std::vector<ValueType>> &butcherTable, 
+                                            double gridSize, 
+                                            std::ostream& out) {
+        this->expr.compile();
+        size_t errCount = 0;
+        size_t i = 0;
+        out << std::string(32 + func.size(), '-') << '\n';
+        out << "\nTesting RKSolve for function [" << func << "]\n";
+        for (auto it = pos.begin(); it != pos.end(); ++it) {
+            auto res = rk::RKMasterSolve<ValueType>(expr, initValues, (*it)[0], gridSize, butcherTable);
+            if ( fabs(res[1] - ((*it).back())) > delta) {
+                out << "Solution at point [" << i << "] deviates more than delta " << delta << "\n";
+                out << "Expected solution: [" << ((*it).back()) << "]\n";
+                out << "Got: [" << res[0] << ", "<< res[1] << "]\n\n";
+                ++errCount;
+            }
+            ++i;
+        }
+        out << "\nFinished test with [" << errCount << "] errors\n";
+        out << std::string(32 + func.size(), '-') << "\n\n";
+        return errCount;
+    }
+
 
 
     template<typename ValueType>
@@ -248,7 +273,7 @@ namespace tests_rk {
         out << '\n';
         i = 0;
         for (auto it = pos.begin(); it != pos.end(); ++it) {
-            auto res = rk::RKSolveSystem<ValueType>(tmp, initValues, (*it)[0], gridSize);
+            auto res = rk::RK4SolveSystem<ValueType>(tmp, initValues, (*it)[0], gridSize);
             for (size_t j = 1; j < res.size(); ++j) {
                 if (fabs((*it)[j] - res[j]) > delta) {
                     ++errCount;
@@ -305,7 +330,7 @@ namespace tests_rk {
         out << '\n';
         i = 0;
         for (auto it = pos.begin(); it != pos.end(); ++it) {
-            auto res = rk::RKMasterSolver<ValueType>(tmp, initValues, (*it)[0], gridSize, butcherTable);
+            auto res = rk::RKMasterSystemSolve<ValueType>(tmp, initValues, (*it)[0], gridSize, butcherTable);
             for (size_t j = 1; j < res.size(); ++j) {
                 if (fabs((*it)[j] - res[j]) > delta) {
                     ++errCount;

@@ -1,8 +1,8 @@
+#pragma once
+
 #include <chrono>
 #include <stdexcept>
 #include "../src/expression/Expression.h"
-
-#pragma once
 
 namespace tests_rk {
     
@@ -60,13 +60,14 @@ namespace tests_rk {
         BasicTest(const std::string&, const std::vector<std::string>&&, double, const std::vector<std::vector<ValueType>>&&, const std::vector<ValueType>&&);
         explicit BasicTest(const std::string&, const std::vector<std::string>&, double, const std::string&, const std::string&);
         int run_parse_test(std::ostream& out = std::cout);
-        int run_solve_test(std::vector<ValueType> initValues, double gridSize = 0.0001, std::ostream& out = std::cout, 
-                           std::vector<ValueType> (*solver)(const rk::Expression<ValueType>&, std::vector<ValueType>, ValueType, ValueType) = rk::RKSolve<ValueType>);
+        int run_solve_test(std::vector<ValueType> initValues, double gridSize = 0.0001, std::ostream& out = std::cout,
+                           std::vector<ValueType> (*solver)(const rk::Expression<ValueType>&, std::vector<ValueType>, ValueType, ValueType) = rk::RK4Solve<ValueType>);
+        int run_solve_test(std::vector<ValueType> initValues, const std::vector<std::vector<ValueType>>&butcherTable, double gridSize = 0.0001, std::ostream& out = std::cout);
         void force_parse();
     private:
+        rk::Expression<ValueType> expr;
         std::string func;
         std::vector<std::string> vars;
-        rk::Expression<ValueType> expr;
         double delta;
         std::vector<std::vector<ValueType>> pos;
         std::vector<ValueType> vals;
@@ -88,9 +89,9 @@ namespace tests_rk {
                            double gridSize = 0.0001,
                            std::ostream& out = std::cout);
     private:
+        std::vector<rk::Expression<ValueType>> exprs;
         std::vector<std::string> funcs;
         std::vector<std::string> vars;
-        std::vector<rk::Expression<ValueType>> exprs;
         double delta;
         std::vector<std::vector<ValueType>> pos;
         std::vector<std::vector<ValueType>> vals;

@@ -12,7 +12,6 @@ int uni_test_1(std::ostream& out,
     {   /*  SOLVE TESTS */
 
         size_t tmpErrCount = 0;
-        const long double pi = 3.141592653589793239;
         const std::string eStr = "2.7182818284590452354";
         out << "\nRunning system solve tests...\n";
         {

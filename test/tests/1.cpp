@@ -4,9 +4,6 @@
 #include "../../src/runge-kutta/RungeKutta.h"
 #include "../Tests.h"
 
-static double rand_double() {
-    return static_cast<double>(rand() % ((1ull << 53u) + 1));
-}
 
 static float rand_float() {
     return static_cast<float>(rand() % ((1ull << 23u) + 1));
