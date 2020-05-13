@@ -40,9 +40,9 @@ namespace rk {
                    std::pair<Value, bool> (*f)(const std::string&) = utils_rk::stringToDouble);
         Value evaluate(const std::vector<Value>& = {}) const;
         bool compile();
-
+        Expression() = default;
         Expression(const Expression<Value>&);
-        Expression<Value>& operator=(Expression<Value> other);
+        Expression<Value>& operator=(Expression<Value> &other);
     private:
         std::list<std::shared_ptr<Token<Value>>> mainQueue;
         std::vector<std::shared_ptr<Token<Value>>> expression;

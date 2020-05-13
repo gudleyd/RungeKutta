@@ -8,8 +8,8 @@
 namespace rk {
 
     template class Expression<float>;
-//    template class Expression<double>;
-//    template class Expression<long double>;
+    template class Expression<double>;
+    template class Expression<long double>;
 
 
     template<typename Value>
@@ -25,7 +25,9 @@ namespace rk {
             {"sin", std::make_shared<SinToken<Value>>()},
             {"pow", std::make_shared<PowToken<Value>>()}
     };
-
+    
+    template<typename Value>
+    std::map<std::string, size_t> Expression<Value>::dlls{};
 
     template<typename Value>
     void Expression<Value>::parse(std::string s,
@@ -147,7 +149,7 @@ namespace rk {
 
     template<typename Value>
     bool Expression<Value>::compile() {
-        if (this->compiled != nullptr && Expression::dlls[compileName]-- == 0) {
+        if (this->compiled != nullptr && Expression<Value>::dlls[compileName]-- == 0) {
 #ifndef WIN32
             dlclose(this->dll);
 #else
@@ -199,9 +201,10 @@ namespace rk {
 #endif
 
         if (this->compiled)
-            Expression::dlls[compileName] = 1;
+            Expression<Value>::dlls[compileName] = 1;
         return (this->compiled != nullptr);
     }
+
 
     template<typename Value>
     Expression<Value>::Expression(const Expression<Value> &p) {
@@ -213,19 +216,28 @@ namespace rk {
         this->converter = p.converter;
         this->compiled = p.compiled;
         if (p.dll != nullptr)
-            Expression::dlls[p.compileName]++;
+            Expression<Value>::dlls[p.compileName]++;
     }
 
     template<typename Value>
-    Expression<Value>& Expression<Value>::operator=(Expression<Value> other) {
-        *this(other);
+    Expression<Value>& Expression<Value>::operator=(Expression<Value> &other) {
+        if(&other == this)
+            return *this;
+        Expression<Value> tmp(other);
+        std::swap(this->compileName, tmp.compileName);
+        std::swap(this->dll, tmp.dll);
+        std::swap(this->mainQueue, tmp.mainQueue);
+        std::swap(this->expression, tmp.expression);
+        std::swap(this->vars, tmp.vars);
+        std::swap(this->converter, tmp.converter);
+        std::swap(this->compiled, tmp.compiled);
         return *this;
     }
 
 
     template<typename Value>
     Expression<Value>::~Expression() {
-        if (this->compiled != nullptr && Expression::dlls[compileName]-- == 0) {
+        if (this->compiled != nullptr && Expression<Value>::dlls[compileName]-- == 0) {
 #ifndef WIN32
             dlclose(this->dll);
 #else
