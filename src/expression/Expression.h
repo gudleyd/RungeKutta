@@ -59,6 +59,7 @@ namespace rk {
 
         void tokenize(std::string&, std::vector<std::shared_ptr<Token<Value>>>&);
         std::shared_ptr<Token<Value>> getToken(const std::string&);
+        void uncompile();
 
         static std::map<std::string, std::shared_ptr<Token<Value>>> tokens;
         static std::map<std::string, size_t> dlls;

@@ -77,6 +77,22 @@ namespace rk {
             mainQueue.push_back(opStack.top());
             opStack.pop();
         }
+        this->uncompile();
+        this->fromString = true;
+        this->compiled = nullptr;
+        this->dll = nullptr;
+    }
+
+    template<typename Value>
+    void Expression<Value>::setFunction(Value (*function)(const Value *)) {
+        this->uncompile();
+        this->fromString = false;
+        this->compiled = function;
+        this->dll = nullptr;
+    }
+
+    template<typename Value>
+    void Expression<Value>::uncompile() {
         if (this->fromString && this->compiled != nullptr && --Expression<Value>::dlls[compileName] == 0) {
 #ifndef WIN32
             dlclose(this->dll);
@@ -86,23 +102,6 @@ namespace rk {
             remove(("./" + compileName + ".so").c_str());
             remove(("./" + compileName + ".cc").c_str());
         }
-        this->fromString = true;
-        this->compiled = nullptr;
-        this->dll = nullptr;
-    }
-
-    template<typename Value>
-    void Expression<Value>::setFunction(Value (*function)(const Value *)) {
-        if (this->fromString && this->compiled != nullptr && --Expression<Value>::dlls[compileName] == 0) {
-#ifndef WIN32
-            dlclose(this->dll);
-#else
-            FreeLibrary((HINSTANCE) this->dll);
-#endif
-        }
-        this->fromString = false;
-        this->compiled = function;
-        this->dll = nullptr;
     }
 
     template<typename Value>
@@ -183,15 +182,7 @@ namespace rk {
         if (!this->fromString)
             return true;
 
-        if (this->compiled != nullptr && --Expression<Value>::dlls[compileName] == 0) {
-#ifndef WIN32
-            dlclose(this->dll);
-#else
-            FreeLibrary((HINSTANCE) this->dll);
-#endif
-            remove(("./" + compileName + ".so").c_str());
-            remove(("./" + compileName + ".cc").c_str());
-        }
+        this->uncompile();
 
         std::string functionString;
         for (auto &t: this->expression) {
@@ -247,6 +238,7 @@ namespace rk {
 
     template<typename Value>
     Expression<Value>::Expression(const Expression<Value> &p) {
+        this->uncompile();
         this->compileName = p.compileName;
         this->dll = p.dll;
         this->mainQueue = p.mainQueue;
@@ -263,6 +255,7 @@ namespace rk {
     Expression<Value>& Expression<Value>::operator=(Expression<Value> &p) {
         if(&p == this)
             return *this;
+        this->uncompile();
         this->compileName = p.compileName;
         this->dll = p.dll;
         this->mainQueue = p.mainQueue;
@@ -279,15 +272,7 @@ namespace rk {
 
     template<typename Value>
     Expression<Value>::~Expression() {
-        if (this->fromString && this->compiled != nullptr && --Expression<Value>::dlls[compileName] == 0) {
-#ifndef WIN32
-            dlclose(this->dll);
-#else
-            FreeLibrary((HINSTANCE) this->dll);
-#endif
-            remove(("./" + compileName + ".so").c_str());
-            remove(("./" + compileName + ".cc").c_str());
-        }
+        this->uncompile();
     }
 
 }
