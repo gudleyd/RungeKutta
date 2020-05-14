@@ -83,6 +83,8 @@ namespace rk {
 #else
             FreeLibrary((HINSTANCE) this->dll);
 #endif
+            remove(("./" + compileName + ".so").c_str());
+            remove(("./" + compileName + ".cc").c_str());
         }
         this->fromString = true;
         this->compiled = nullptr;
@@ -187,6 +189,8 @@ namespace rk {
 #else
             FreeLibrary((HINSTANCE) this->dll);
 #endif
+            remove(("./" + compileName + ".so").c_str());
+            remove(("./" + compileName + ".cc").c_str());
         }
 
         std::string functionString;
@@ -250,22 +254,25 @@ namespace rk {
         this->vars = p.vars;
         this->converter = p.converter;
         this->compiled = p.compiled;
-        if (p.dll != nullptr)
+        this->fromString = p.fromString;
+        if (p.dll != nullptr && p.fromString)
             Expression<Value>::dlls[p.compileName]++;
     }
 
     template<typename Value>
-    Expression<Value>& Expression<Value>::operator=(Expression<Value> &other) {
-        if(&other == this)
+    Expression<Value>& Expression<Value>::operator=(Expression<Value> &p) {
+        if(&p == this)
             return *this;
-        Expression<Value> tmp(other);
-        std::swap(this->compileName, tmp.compileName);
-        std::swap(this->dll, tmp.dll);
-        std::swap(this->mainQueue, tmp.mainQueue);
-        std::swap(this->expression, tmp.expression);
-        std::swap(this->vars, tmp.vars);
-        std::swap(this->converter, tmp.converter);
-        std::swap(this->compiled, tmp.compiled);
+        this->compileName = p.compileName;
+        this->dll = p.dll;
+        this->mainQueue = p.mainQueue;
+        this->expression = p.expression;
+        this->vars = p.vars;
+        this->converter = p.converter;
+        this->compiled = p.compiled;
+        this->fromString = p.fromString;
+        if (p.dll != nullptr && p.fromString)
+            Expression<Value>::dlls[p.compileName]++;
         return *this;
     }
 
