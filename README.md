@@ -16,7 +16,6 @@ RungeKutta is a library for finding approximate solutions of ordinary differenti
 - RK3RalstonSolve
 ##### 4th Order Methods
 - RK4Solve
-- RK4SolveSystem
 - RK4ClassicSolve
 - RK4RalstonSolve
 - SSPRK4Solve
