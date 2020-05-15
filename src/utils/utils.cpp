@@ -53,7 +53,8 @@ namespace utils_rk {
         return result ? std::string(result.get()) : "error occurred";
     }
 
-    std::string randomString(size_t length)
+    size_t RK_GS_CALLS = 0;
+    std::string generateUniqueString(size_t length)
     {
         auto randchar = []() -> char
         {
@@ -66,6 +67,7 @@ namespace utils_rk {
         };
         std::string str(length,0);
         std::generate_n(str.begin(), length, randchar);
+        str += "-" + std::to_string(RK_GS_CALLS++);
         return str;
     }
 

@@ -19,5 +19,5 @@ namespace utils_rk {
 
     std::string typeNameToString(const char* type_name);
 
-    std::string randomString(size_t length);
+    std::string generateUniqueString(size_t length);
 }

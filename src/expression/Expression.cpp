@@ -194,7 +194,7 @@ namespace rk {
         }
 
         std::string valueName = utils_rk::typeNameToString(typeid(Value).name());
-        compileName = utils_rk::randomString(128);
+        compileName = utils_rk::generateUniqueString(128);
         std::ofstream sf("./" + compileName + ".cc");
         sf << "#include<math.h>\n"
            << "#ifdef __cplusplus\n"
