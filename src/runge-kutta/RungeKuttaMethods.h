@@ -91,7 +91,7 @@ namespace rk {
             }
             tmpValues[0] = initValues[0] + h;
             for (size_t t = 1; t <= functions.size(); ++t) {
-                for (size_t j = 0; j < butcherTable.size() - 3; ++j)
+                for (size_t j = 0; j < butcherTable.size() - 2; ++j)
                     tmpValues[t] = initValues[t] + k[t - 1][j] * butcherTable[butcherTable.size() - 1][j + 1];
             }
 
@@ -145,6 +145,100 @@ namespace rk {
     // |                            |
     //
 
+
+    ///////////////////////
+    //                   //
+    //      ORDER 2      //
+    //                   //
+    ///////////////////////
+
+    // Edited by TV 14.05.2020
+    template<typename Value>
+    std::vector<Value> RK2MidpointSolve(const Expression<Value>& function,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.00001) {
+        const std::vector<std::vector<Value>> bT({{0, 0}, {0.5, 0.5, 0}, {0, 0, 1}});
+        return RKMasterSolve<Value>(function, initValues, at, h, bT);
+    }
+
+    template<typename Value>
+    std::vector<Value> RK2MidpointSystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.00001) {
+        const std::vector<std::vector<Value>> bT({{0, 0}, {0.5, 0.5, 0}, {0, 0, 1}});
+        return RKMasterSystemSolve<Value>(functions, initValues, at, h, bT);
+    }
+
+    // Edited by TV 14.05.2020
+    template<typename Value>
+    std::vector<Value> RK2HeunSolve(const Expression<Value>& function,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.00001) {
+        const std::vector<std::vector<Value>> bT({{0, 0}, {1, 1, 0}, {0, 0.5, 0.5}});
+        return RKMasterSolve<Value>(function, initValues, at, h, bT);
+    }
+    
+    template<typename Value>
+    std::vector<Value> RK2HeunSystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.00001) {
+        const std::vector<std::vector<Value>> bT({{0, 0}, {1, 1, 0}, {0, 0.5, 0.5}});
+        return RKMasterSystemSolve<Value>(functions, initValues, at, h, bT);
+    }
+
+    // Edited by TV 14.05.2020
+    template<typename Value>
+    std::vector<Value> RK2RalstonSolve(const Expression<Value>& function,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.00001) {
+        const std::vector<std::vector<Value>> bT({{0, 0}, {2.0/3, 2.0/3, 0}, {0, 0.25, 0.75}});
+        return RKMasterSolve<Value>(function, initValues, at, h, bT);
+    }
+    
+    template<typename Value>
+    std::vector<Value> RK2RalstonSystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.00001) {
+        const std::vector<std::vector<Value>> bT({{0, 0}, {2.0/3, 2.0/3, 0}, {0, 0.25, 0.75}});
+        return RKMasterSystemSolve<Value>(functions, initValues, at, h, bT);
+    }
+
+    // Edited by TV 14.05.2020
+    // By default uses same alpha as Ralstons method
+    template<typename Value>
+    std::vector<Value> RK2GenericSolve(const Expression<Value>& function,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.00001,
+                                Value alpha = 2.0/3) {
+        const Value dAlph = 2 * alpha;
+        if (fabs(alpha) < 0.000001)
+            throw std::invalid_argument("Alpha Value for Generic RK2 must not be equal 0");
+        const std::vector<std::vector<Value>> bT({{0, 0}, {alpha, alpha, 0}, {0, 1 - 1/dAlph, 1/(dAlph)}});
+        return RKMasterSolve<Value>(function, initValues, at, h, bT);
+    }
+    // By default uses same alpha as Ralstons method
+    template<typename Value>
+    std::vector<Value> RK2GenericSystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.00001,
+                                Value alpha = 2.0/3) {
+        const Value dAlph = 2 * alpha;
+        if (fabs(alpha) < 0.000001)
+            throw std::invalid_argument("Alpha Value for Generic RK2 must not be equal 0");
+        const std::vector<std::vector<Value>> bT({{0, 0}, {alpha, alpha, 0}, {0, 1 - 1/dAlph, 1/(dAlph)}});
+        return RKMasterSystemSolve<Value>(functions, initValues, at, h, bT);
+    }
+
+    
+
     ///////////////////////
     //                   //
     //      ORDER 3      //
@@ -161,6 +255,16 @@ namespace rk {
         return RKMasterSolve<Value>(function, initValues, at, h, bT);
     }
 
+    // Edited by TV 13.05.2020
+    template<typename Value>
+    std::vector<Value> RK3SystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.001) {
+        const std::vector<std::vector<Value>> bT({{0, 0}, {0.5, 0.5, 0}, {1, -1, 2, 0}, {0, 1.0/6, 2.0/3, 1.0/6}});
+        return RKMasterSystemSolve<Value>(functions, initValues, at, h, bT);
+    }
+
     // Edited by TV 11.05.2020
     template<typename Value>
     std::vector<Value> RK3GenericSolve(const Expression<Value>& function,
@@ -168,16 +272,35 @@ namespace rk {
                                 Value at,
                                 Value h = 0.001, 
                                 Value alpha = 0.5) {
-        if (fabs(alpha) < 0.00001 || fabs(alpha - 2.0/3.0) < 0.00001 || fabs(alpha - 1) < 0.00001)
+        if (fabs(alpha) < 0.000001 || fabs(alpha - 2.0/3.0) < 0.00001 || fabs(alpha - 1) < 0.00001)
             throw std::invalid_argument("Alpha Value for Generic RK3 must not be equal 0, 2/3 or 1");
         const auto q = (1 - alpha)/ (alpha * (3.0 * alpha - 2));
-        const std::vector<std::vector<Value>> bT({{0, 0}, 
-                                                 {alpha, alpha, 0}, 
-                                                 {1, 1 + q, -q, 0}, 
-                                                 {0, 0.5 - 1.0/(6 * alpha), 
-                                                  1/(6 * alpha * (1 - alpha)), 
-                                                  (2 - 3 * alpha)/(6 * (1 - alpha))}});
+        const std::vector<std::vector<Value>> bT({
+            {0,     0}, 
+            {alpha, alpha,                  0}, 
+            {1,     1 + q,                  -q,                             0}, 
+            {0,     0.5 - 1.0/(6 * alpha),  1/(6 * alpha * (1 - alpha)),    (2 - 3 * alpha)/(6 * (1 - alpha))}
+        });
         return RKMasterSolve<Value>(function, initValues, at, h, bT);
+    }
+
+    // Edited by TV 13.05.2020
+    template<typename Value>
+    std::vector<Value> RK3GenericSystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.001, 
+                                Value alpha = 0.5) {
+        if (fabs(alpha) < 0.000001 || fabs(alpha - 2.0/3.0) < 0.00001 || fabs(alpha - 1) < 0.00001)
+            throw std::invalid_argument("Alpha Value for Generic RK3 must not be equal 0, 2/3 or 1");
+        const auto q = (1 - alpha)/ (alpha * (3.0 * alpha - 2));
+        const std::vector<std::vector<Value>> bT({
+            {0,     0}, 
+            {alpha, alpha,                  0}, 
+            {1,     1 + q,                  -q,                             0}, 
+            {0,     0.5 - 1.0/(6 * alpha),  1/(6 * alpha * (1 - alpha)),    (2 - 3 * alpha)/(6 * (1 - alpha))}
+        });
+        return RKMasterSystemSolve<Value>(functions, initValues, at, h, bT);
     }
 
     // Edited by TV 09.05.2020
@@ -186,8 +309,27 @@ namespace rk {
                                 std::vector<Value> initValues,
                                 Value at,
                                 Value h = 0.001) {
-        const std::vector<std::vector<Value>> bT({{0, 0}, {1, 1, 0}, {0.5, 0.5, 0.25, 0}, {0, 1.0/6, 1.0/6, 2.0/3}});
+        const std::vector<std::vector<Value>> bT({
+            {0,          0}, 
+            {1,   1,     0}, 
+            {0.5, 0.5,   0.25,  0}, 
+            {0,   1.0/6, 1.0/6, 2.0/3}
+        });
         return RKMasterSolve<Value>(function, initValues, at, h, bT);
+    }
+
+    // Edited by TV 13.05.2020
+    template<typename Value>
+    std::vector<Value> SSPRK3SystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.001) {
+        const std::vector<std::vector<Value>> bT({
+            {0,          0}, 
+            {1,   1,     0}, 
+            {0.5, 0.5,   0.25,  0}, 
+            {0,   1.0/6, 1.0/6, 2.0/3}});
+        return RKMasterSystemSolve<Value>(functions, initValues, at, h, bT);
     }
 
     // Edited by TV 12.05.2020
@@ -196,8 +338,26 @@ namespace rk {
                                 std::vector<Value> initValues,
                                 Value at,
                                 Value h = 0.001) {
-        const std::vector<std::vector<Value>> bT({{0, 0}, {1.0/3, 1.0/3, 0}, {2.0/3, 0,  2.0/3, 0}, {0, 0.25, 0, 0.25}});
+        const std::vector<std::vector<Value>> bT({
+            {0,     0}, 
+            {1.0/3, 1.0/3,  0}, 
+            {2.0/3, 0,      2.0/3,  0}, 
+            {0,     0.25,   0,      0.75}});
         return RKMasterSolve<Value>(function, initValues, at, h, bT);
+    }
+
+    // Edited by TV 13.05.2020
+    template<typename Value>
+    std::vector<Value> RK3HeunSystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.001) {
+        const std::vector<std::vector<Value>> bT({
+            {0,     0}, 
+            {1.0/3, 1.0/3,  0}, 
+            {2.0/3, 0,      2.0/3,  0}, 
+            {0,     0.25,   0,      0.75}});
+        return RKMasterSystemSolve<Value>(functions, initValues, at, h, bT);
     }
 
     // Edited by TV 12.05.2020
@@ -206,8 +366,26 @@ namespace rk {
                                 std::vector<Value> initValues,
                                 Value at,
                                 Value h = 0.001) {
-        const std::vector<std::vector<Value>> bT({{0, 0}, {0.5, 0.5, 0}, {3.0/4, 0,  3.0/4, 0}, {0, 2.0/9, 1.0/3, 4.0/9}});
+        const std::vector<std::vector<Value>> bT({
+            {0,     0}, 
+            {0.5,   0.5,    0}, 
+            {3.0/4, 0,      3.0/4, 0}, 
+            {0,     2.0/9,  1.0/3, 4.0/9}});
         return RKMasterSolve<Value>(function, initValues, at, h, bT);
+    }
+
+    // Edited by TV 13.05.2020
+    template<typename Value>
+    std::vector<Value> RK3RalstonSystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.001) {
+        const std::vector<std::vector<Value>> bT({
+            {0,     0}, 
+            {0.5,   0.5,    0}, 
+            {3.0/4, 0,      3.0/4, 0}, 
+            {0,     2.0/9,  1.0/3, 4.0/9}});
+        return RKMasterSystemSolve<Value>(functions, initValues, at, h, bT);
     }
 
     ///////////////////////
@@ -253,7 +431,7 @@ namespace rk {
     }
     // Edited by TV 09.05.2020
     template<typename Value>
-    std::vector<Value> RK4SolveSystem(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+    std::vector<Value> RK4SystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
                                 std::vector<Value> initValues,
                                 Value at,
                                 Value h = 0.001) {
@@ -307,6 +485,21 @@ namespace rk {
         return RKMasterSolve<Value>(function, initValues, at, h, bT);
     }
 
+    // Edited by TV 14.05.2020
+    template<typename Value>
+    std::vector<Value> RK4ClassicSystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.001) {
+        const std::vector<std::vector<Value>> bT({
+            {0,     0}, 
+            {1.0/3, 1.0/3,  0}, 
+            {2.0/3, -1.0/3, 1,      0},
+            {1,     1,      -1,     1,      0},
+            {0,     1.0/8,  3.0/8,  3.0/8,  1.0/8}});
+        return RKMasterSystemSolve<Value>(functions, initValues, at, h, bT);
+    }
+
     // Edited by TV 12.05.2020
     template<typename Value>
     std::vector<Value> RK4RalstonSolve(const Expression<Value>& function,
@@ -322,23 +515,254 @@ namespace rk {
         return RKMasterSolve<Value>(function, initValues, at, h, bT);
     }
 
+    // Edited by TV 14.05.2020
+    template<typename Value>
+    std::vector<Value> RK4RalstonSystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.001) {
+        const std::vector<std::vector<Value>> bT({
+            {0,           0}, 
+            {0.4,         0.4,         0}, 
+            {0.45573725,  0.29697761,  0.15875964,  0},
+            {1,           0.21810040,  -3.05096516, 3.83286476, 0},
+            {0,           0.17476028,  -0.55148066, 1.20553560, 0.17118478}});
+        return RKMasterSystemSolve<Value>(functions, initValues, at, h, bT);
+    }
+
+    // Edited by TV 14.05.2020
+    template<typename Value>
+    std::vector<Value> SSPRK4Solve(const Expression<Value>& function,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.001) {
+        const std::vector<std::vector<Value>> bT({
+            {0,     0}, 
+            {0.5,   0.5,    0}, 
+            {1,     0.5,    0.5,    0}, 
+            {0.5,   1.0/6,  1.0/6,  1.0/6,  0}, 
+            {0,     1.0/6,  1.0/6,  1.0/6,  0.5}
+        });
+        return RKMasterSolve<Value>(function, initValues, at, h, bT);
+    }
+
+    // Edited by TV 14.05.2020
+    template<typename Value>
+    std::vector<Value> SSPRK4SystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.001) {
+        const std::vector<std::vector<Value>> bT({
+            {0,     0}, 
+            {0.5,   0.5,    0}, 
+            {1,     0.5,    0.5,    0}, 
+            {0.5,   1.0/6,  1.0/6,  1.0/6,  0}, 
+            {0,     1.0/6,  1.0/6,  1.0/6,  0.5}
+        });
+        return RKMasterSystemSolve<Value>(functions, initValues, at, h, bT);
+    }
+
+    ///////////////////////
+    //                   //
+    //      ORDER 5      //
+    //                   //
+    ///////////////////////
+
+    // Edited by TV 14.05.2020
+    template<typename Value>
+    std::vector<Value> SSPRK5Solve(const Expression<Value>& function,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.001) {
+        const std::vector<std::vector<Value>> bT({
+            {0,         0}, 
+            {0.37727,   0.37727,    0}, 
+            {0.75454,   0.37727,    0.37727,    0}, 
+            {0.72899,   0.24300,    0.24300,    0.24300,    0},
+            {0.69923,   0.15359,    0.15359,    0.15359,    0.23846,    0},
+            {0,         0.20673,    0.20673,    0.11710,    0.18180,    0.28763}
+        });
+        return RKMasterSolve<Value>(function, initValues, at, h, bT);
+    }
+
+    // Edited by TV 14.05.2020
+    template<typename Value>
+    std::vector<Value> SSPRK5SystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                                std::vector<Value> initValues,
+                                Value at,
+                                Value h = 0.001) {
+        const std::vector<std::vector<Value>> bT({
+            {0,         0}, 
+            {0.37727,   0.37727,    0}, 
+            {0.75454,   0.37727,    0.37727,    0}, 
+            {0.72899,   0.24300,    0.24300,    0.24300,    0},
+            {0.69923,   0.15359,    0.15359,    0.15359,    0.23846,    0},
+            {0,         0.20673,    0.20673,    0.11710,    0.18180,    0.28763}
+        });
+        return RKMasterSystemSolve<Value>(functions, initValues, at, h, bT);
+    }
+
+    ///////////////////////////////
+    //                           //
+    //       Adaptive step       //
+    //                           //
+    ///////////////////////////////
+
+    /////////////////////////
+    //                     //
+    //      ORDER 3|4      //
+    //                     //
+    /////////////////////////
+
+    template<typename Value>
+    std::vector<Value> ASRKBogackiShampineSolve(const Expression<Value>& function,
+                               std::vector<Value> initValues,
+                               Value at,
+                               Value eps) {
+        const std::vector<std::vector<Value>> bT({
+            {0,     0},
+            {0.5,   0.5,    0},
+            {0.75,  0,      0.75,   0},
+            {1,     2.0/9,  1.0/3,  4.0/9},
+            {0,     2.0/9,	1.0/3,	4.0/9,  0},
+            {0,     7.0/24,	0.25,	1.0/3,	0.125}
+        });
+        return ASRKMasterSolve<Value>(function, initValues, at, eps, bT);
+    }
+
+    template<typename Value>
+    std::vector<Value> ASRKBogackiShampineSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                               std::vector<Value> initValues,
+                               Value at,
+                               Value eps) {
+        const std::vector<std::vector<Value>> bT({
+            {0,     0},
+            {0.5,   0.5,    0},
+            {0.75,  0,      0.75,   0},
+            {1,     2.0/9,  1.0/3,  4.0/9},
+            {0,     2.0/9,	1.0/3,	4.0/9,  0},
+            {0,     7.0/24,	0.25,	1.0/3,	0.125}
+        });
+        return ASRKMasterSystemSolve<Value>(functions, initValues, at, eps, bT);
+    }
+
+    /////////////////////////
+    //                     //
+    //      ORDER 4|5      //
+    //                     //
+    /////////////////////////
+
     
     template<typename Value>
     std::vector<Value> ASRKFehlbergSolve(const Expression<Value>& function,
                                std::vector<Value> initValues,
                                Value at,
                                Value eps) {
-    const std::vector<std::vector<Value>> bT({
-        {0,         0},
-        {0.25,      0.25,           0},
-        {3.0/8,     3.0/32,         9.0/32,         0},
-        {12.0/13,   1932.0/2197,    -7200.0/2197,   7296.0/2197,    0},
-        {1,         439.0/216,      -8,             3680.0/513,     -845.0/4104,    0},
-        {0.5,       -8.0/27,        2,              -3544.0/2565,   1859.0/4104,    -11.0/40},
-        {0,         16.0/135,       0,              6656.0/12825,   28561.0/56430	-9.0/50,        2.0/55},
-        {0,         25.0/216,	    0,	            1408.0/2565,	2197.0/4104,	-1.0/5,     	0}
-    });
-    return ASRKMasterSolve<Value>(function, initValues, at, eps, bT);
-}
+        const std::vector<std::vector<Value>> bT({
+            {0,         0},
+            {0.25,      0.25,           0},
+            {3.0/8,     3.0/32,         9.0/32,         0},
+            {12.0/13,   1932.0/2197,    -7200.0/2197,   7296.0/2197,    0},
+            {1,         439.0/216,      -8,             3680.0/513,     -845.0/4104,    0},
+            {0.5,       -8.0/27,        2,              -3544.0/2565,   1859.0/4104,    -11.0/40},
+            {0,         16.0/135,       0,              6656.0/12825,   28561.0/56430	-9.0/50,        2.0/55},
+            {0,         25.0/216,	    0,	            1408.0/2565,	2197.0/4104,	-1.0/5,     	0}
+        });
+        return ASRKMasterSolve<Value>(function, initValues, at, eps, bT);
+    }
+
+    template<typename Value>
+    std::vector<Value> ASRKFehlbergSystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                               std::vector<Value> initValues,
+                               Value at,
+                               Value eps) {
+        const std::vector<std::vector<Value>> bT({
+            {0,         0},
+            {0.25,      0.25,           0},
+            {3.0/8,     3.0/32,         9.0/32,         0},
+            {12.0/13,   1932.0/2197,    -7200.0/2197,   7296.0/2197,    0},
+            {1,         439.0/216,      -8,             3680.0/513,     -845.0/4104,    0},
+            {0.5,       -8.0/27,        2,              -3544.0/2565,   1859.0/4104,    -11.0/40},
+            {0,         16.0/135,       0,              6656.0/12825,   28561.0/56430	-9.0/50,        2.0/55},
+            {0,         25.0/216,	    0,	            1408.0/2565,	2197.0/4104,	-1.0/5,     	0}
+        });
+        return ASRKMasterSystemSolve<Value>(functions, initValues, at, eps, bT);
+    }
+
+    template<typename Value>
+    std::vector<Value> ASRKCashCarpSolve(const Expression<Value>& function,
+                               std::vector<Value> initValues,
+                               Value at,
+                               Value eps) {
+        const std::vector<std::vector<Value>> bT({
+            {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+            {0.2, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0},
+            {0.3, 0.075, 0.225, 0.0, 0.0, 0.0, 0.0},
+            {0.6, 0.3, -0.9, 1.2, 0.0, 0.0, 0.0},
+            {1.0, -0.2037037, 2.5, -2.59259259, 1.2962963, 0.0, 0.0},
+            {0.875, 0.0294958, 0.34179688, 0.04159433, 0.40034541, 0.06176758, 0.0},
+            {0.0, 0.0978836, 0.0, 0.40257649, 0.21043771, 0.0, 0.2891022},
+            {0.0, 0.10217737, 0.0, 0.3839079, 0.24459274, 0.01932199, 0.25}
+        });
+        return ASRKMasterSolve<Value>(function, initValues, at, eps, bT);
+    }
+
+    template<typename Value>
+    std::vector<Value> ASRKCashCarpSystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                               std::vector<Value> initValues,
+                               Value at,
+                               Value eps) {
+        const std::vector<std::vector<Value>> bT({
+            {0L,         0L},
+            {0.2L,       0.2L,            0L},
+            {0.3L,       3.0L/40,         9.0L/40,         0L},
+            {0.6L,       0.3L,            -0.9L,           1.2L,            0L},
+            {1L,         -11.0L/54,       2.5L,            -70.0L/27,       35.0L/27,        0L},
+            {7.0L/8,     1631.0L/55296,	  175.0L/512,	   575.0L/13824,    44275.0L/110592, 253.0L/4096},
+            {0L,         37.0L/378,	      0L,	           250.0L/621,	    125.0L/594,    	 0L,              512.0L/1771},
+            {0L,         2825.0L/27648L,  0L,	           18575.0L/48384,	13525.0L/55296,	 277.0L/14336,	  0.25L}
+        });
+        return ASRKMasterSystemSolve<Value>(functions, initValues, at, eps, bT);
+    }
+
+    template<typename Value>
+    std::vector<Value> ASRKDormandPrinceSolve(const Expression<Value>& function,
+                               std::vector<Value> initValues,
+                               Value at,
+                               Value eps) {
+        // For some reason, even though there are 6 k-s this is order 4 and 5 method since the last 2 k-s are calculated at the same point
+        // (not order 5 and 6 as you might initially think)
+        const std::vector<std::vector<Value>> bT({
+            {0,     0},
+            {0.2,   0.2,            0},
+            {0.3,   3.0/40,         9.0/40,         0},
+            {0.8,   44.0/45,        -56.0/15,       32.0/9,         0},
+            {8.0/9, 19372.0/6561,	-25360.0/2187,	64448.0/6561,	-212.0/729},
+            {1.0,   9017.0/3168,	-355.0/33,	    46732.0/5247,	49.0/176,	    -5103.0/18656},
+            {1.0,   35.0/384,	    0,	            500.0/1113,	    125.0/192,	    -2187.0/6784,	    11.0/84},
+            {0,     35.0/384,	    0,	            500.0/1113,	    125.0/192,	    -2187.0/6784,	    11.0/84,    0},
+            {0,     5179.0/57600,	0,              7571.0/16695,	393.0/640,	    -92097.0/339200,	187.0/2100,	0.025}
+        });
+        return ASRKMasterSolve<Value>(function, initValues, at, eps, bT);
+    }
+
+    template<typename Value>
+    std::vector<Value> ASRKDormandPrinceSystemSolve(const std::vector<std::shared_ptr<Expression<Value>>>& functions,
+                               std::vector<Value> initValues,
+                               Value at,
+                               Value eps) {
+        const std::vector<std::vector<Value>> bT({
+            {0,     0},
+            {0.2,   0.2,            0},
+            {0.3,   3.0/40,         9.0/40,         0},
+            {0.8,   44.0/45,        -56.0/15,       32.0/9,         0},
+            {8.0/9, 19372.0/6561,	-25360.0/2187,	64448.0/6561,	-212.0/729},
+            {1.0,   9017.0/3168,	-355.0/33,	    46732.0/5247,	49.0/176,	    -5103.0/18656},
+            {1.0,   35.0/384,	    0,	            500.0/1113,	    125.0/192,	    -2187.0/6784,	    11.0/84},
+            {0,     35.0/384,	    0,	            500.0/1113,	    125.0/192,	    -2187.0/6784,	    11.0/84,    0},
+            {0,     5179.0/57600,	0,              7571.0/16695,	393.0/640,	    -92097.0/339200,	187.0/2100,	0.025}
+        });
+        return ASRKMasterSystemSolve<Value>(functions, initValues, at, eps, bT);
+    }
 
 }

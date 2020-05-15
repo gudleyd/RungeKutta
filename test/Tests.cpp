@@ -193,7 +193,7 @@ namespace tests_rk {
         size_t errCount = 0;
         size_t i = 0;
         out << std::string(32 + func.size(), '-') << '\n';
-        out << "\nTesting RKSolve for function [" << func << "]\n";
+        out << "\nTesting Solver for function [" << func << "]\n";
         for (auto it = pos.begin(); it != pos.end(); ++it) {
             auto res = solver(expr, initValues, (*it)[0], gridSize);
             if ( fabs(res[1] - ((*it).back())) > delta) {
@@ -218,7 +218,7 @@ namespace tests_rk {
         size_t errCount = 0;
         size_t i = 0;
         out << std::string(32 + func.size(), '-') << '\n';
-        out << "\nTesting RKSolve for function [" << func << "]\n";
+        out << "\nTesting MasterSolve for function [" << func << "]\n";
         for (auto it = pos.begin(); it != pos.end(); ++it) {
             auto res = rk::RKMasterSolve<ValueType>(expr, initValues, (*it)[0], gridSize, butcherTable);
             if ( fabs(res[1] - ((*it).back())) > delta) {
@@ -251,7 +251,8 @@ namespace tests_rk {
     }
 
     template<typename ValueType>
-    int SystemTest<ValueType>::run_solve_test(std::vector<ValueType> initValues, double gridSize, std::ostream& out) {
+    int SystemTest<ValueType>::run_solve_test(std::vector<ValueType> initValues, double gridSize, std::ostream& out, 
+                                              std::vector<ValueType> (*solver)(const std::vector<std::shared_ptr<rk::Expression<ValueType>>>&, std::vector<ValueType>, ValueType, ValueType)) {
         for (auto it = this->exprs.begin(); it != this->exprs.end(); ++it) {
             (*it).compile();
         }
@@ -262,7 +263,7 @@ namespace tests_rk {
         tmp.reserve(funcs.size());
 
         out << std::string(32 + funcs[0].size(), '-') << '\n';
-        out << "\nTesting RKSolve for functions:\n";
+        out << "\nTesting SystemSolver for functions:\n";
 
         size_t i = 0;
         for (auto it = this->funcs.begin(); it != funcs.end(); ++it) {
@@ -273,7 +274,7 @@ namespace tests_rk {
         out << '\n';
         i = 0;
         for (auto it = pos.begin(); it != pos.end(); ++it) {
-            auto res = rk::RK4SolveSystem<ValueType>(tmp, initValues, (*it)[0], gridSize);
+            auto res = solver(tmp, initValues, (*it)[0], gridSize);
             for (size_t j = 1; j < res.size(); ++j) {
                 if (fabs((*it)[j] - res[j]) > delta) {
                     ++errCount;
@@ -319,7 +320,7 @@ namespace tests_rk {
         tmp.reserve(funcs.size());
 
         out << std::string(32 + funcs[0].size(), '-') << '\n';
-        out << "\nTesting RKSolve for functions:\n";
+        out << "\nTesting MasterSolver for functions:\n";
 
         size_t i = 0;
         for (auto it = this->funcs.begin(); it != funcs.end(); ++it) {
