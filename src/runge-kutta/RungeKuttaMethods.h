@@ -73,12 +73,11 @@ namespace rk {
             throw std::invalid_argument("RK methods do not compute solutions at points left of initValue");
         uint64_t n = 0;
         long double h = diff;
-        std::vector<std::vector<Value>> k(functions.size(), std::vector<Value>(butcherTable.size() - 1));
+        std::vector<std::vector<Value>> k(functions.size(), std::vector<Value>(butcherTable.size()));
         std::vector<Value> tmpValues(initValues);
         std::vector<Value> tmpY(initValues);
-        double mDiff = std::numeric_limits<double>::infinity();
-        while(fabs(at - initValues[0]) >= eps || mDiff > eps) {
-            // Use butcherTable.size() - 2 since the bottom most 2 are for y value coef-s
+        long double mDiff = std::numeric_limits<double>::infinity();
+        while(at - initValues[0] >= eps) {
             for (size_t j = 0; j < butcherTable.size() - 2; ++j) {
                 tmpValues[0] = initValues[0] + h * butcherTable[j][0];
                 for (size_t t = 1; t <= functions.size(); ++t) {
@@ -86,19 +85,23 @@ namespace rk {
                     for (size_t j1 = 0; j1 < j; ++j1)
                         tmpValues[t] += k[t - 1][j1] * butcherTable[j][j1 + 1];
                 }
-                for (size_t t = 0; t < functions.size(); ++t)
+                for (size_t t = 0; t < functions.size(); ++t) {
                     k[t][j] = h * functions[t]->evaluate(tmpValues);
+                }
             }
+
             tmpValues[0] = initValues[0] + h;
             for (size_t t = 1; t <= functions.size(); ++t) {
+                tmpValues[t] = initValues[t];
                 for (size_t j = 0; j < butcherTable.size() - 2; ++j)
-                    tmpValues[t] = initValues[t] + k[t - 1][j] * butcherTable[butcherTable.size() - 1][j + 1];
+                    tmpValues[t] += k[t - 1][j] * butcherTable[butcherTable.size() - 1][j + 1];
             }
 
             tmpY[0] = initValues[0] + h;
             for (size_t t = 1; t <= functions.size(); ++t) {
+                tmpY[t] = initValues[t];
                 for (size_t j = 0; j < butcherTable.size() - 2; ++j)
-                    tmpY[t] = initValues[t] + k[t - 1][j] * butcherTable[butcherTable.size() - 2][j + 1];
+                    tmpY[t] += k[t - 1][j] * butcherTable[butcherTable.size() - 2][j + 1];
             }
             
             ++n;
@@ -113,16 +116,17 @@ namespace rk {
                 // On odd steps we adjust our step value
                 // Adapt the step size
                 mDiff = 0;
-                for (size_t j = 0; j < initValues.size(); ++j) {
-                    auto tmpDiff = fabs(initValues[j] - tmpY[j]);
+                for (size_t j = 0; j < tmpValues.size(); ++j) {
+                    auto tmpDiff = fabs(tmpValues[j] - tmpY[j]);
                     if (tmpDiff > mDiff)
                         mDiff = tmpDiff;
                 }
-                h *= 0.9 * std::min(2.0, std::max(0.3, (double)std::sqrt((long double)eps/(2 * mDiff))));
+                h *= 0.9 * std::min((long double)2.0, std::max((long double)0.3, (long double)std::sqrt((long double)eps / (2 * mDiff))));
                 if (h < 0.000001)
                     h = 0.000001;
             }
         }
+
         return std::move(initValues);
     }
     // Edited by TV on 12.05.2020
@@ -623,9 +627,9 @@ namespace rk {
             {0,     0},
             {0.5,   0.5,    0},
             {0.75,  0,      0.75,   0},
-            {1,     2.0/9,  1.0/3,  4.0/9},
-            {0,     2.0/9,	1.0/3,	4.0/9,  0},
-            {0,     7.0/24,	0.25,	1.0/3,	0.125}
+            {1,     0.22222222,  0.33333333,  0.44444444, 0},
+            {0,     0.22222222,	0.33333333,	0.44444444,  0},
+            {0,     0.29166667,	0.25,	0.33333333,	0.125}
         });
         return ASRKMasterSolve<Value>(function, initValues, at, eps, bT);
     }

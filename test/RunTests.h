@@ -38,7 +38,7 @@ namespace tests_rk {
         }
     }
 
-    
+
     void run_basic_test(std::vector<long double> (*solver)(const rk::Expression<long double>&, std::vector<long double>, long double, long double),
                         std::string name, std::ostream& out, long double delta, long double precision, int bitMask) {
         std::string f_name(name);
@@ -84,50 +84,42 @@ namespace tests_rk {
             out << "Finished timing\n\n";
         }
         std::ofstream logOut("../test/tests/logs/test1.log");
-        //if (logOut.is_open())
-        //    mass_test_1(out, logOut);
+        if (logOut.is_open())
+            mass_test_1(out, logOut);
         logOut.close();
 
         //run_basic_test<rk::RK2GenericSolve<long double>>("RK2Generic", out, 0.01L, 0.00001L, 0x1F1);
-        // run_basic_test(rk::RK2HeunSolve<long double>, "RK2Heun", out, 0.01L, 0.00001L, 0x1F1);
-        // run_basic_test(rk::RK2MidpointSolve<long double>, "RK2Midpoint", out, 0.01L, 0.00001L, 0x1F1);
-        // run_basic_test(rk::RK2RalstonSolve<long double>, "RK2Ralston", out, 0.01L, 0.00001L, 0x1F1);
+        run_basic_test(rk::RK2HeunSolve<long double>, "RK2Heun", out, 0.01L, 0.00001L, 0x1F1);
+        run_basic_test(rk::RK2MidpointSolve<long double>, "RK2Midpoint", out, 0.01L, 0.00001L, 0x1F1);
+        run_basic_test(rk::RK2RalstonSolve<long double>, "RK2Ralston", out, 0.01L, 0.00001L, 0x1F1);
 
-        // //run_basic_test<rk::RK3GenericSolve<long double>>("RK3Generic", out, 0.01L, 0.00001L, 0x3FD);
-        // run_basic_test(rk::RK3HeunSolve<long double>, "RK3Heun", out, 0.01L, 0.00001, 0x1FD);
-        // run_basic_test(rk::RK3RalstonSolve<long double>, "RK3Ralston", out, 0.01L, 0.00001L, 0x1FD);
-        // run_basic_test(rk::SSPRK3Solve<long double>, "SSPRK3", out, 0.01L, 0.00001L, 0x1F1);
+        //run_basic_test<rk::RK3GenericSolve<long double>>("RK3Generic", out, 0.01L, 0.00001L, 0x3FD);
+        run_basic_test(rk::RK3HeunSolve<long double>, "RK3Heun", out, 0.01L, 0.00001, 0x1FD);
+        run_basic_test(rk::RK3RalstonSolve<long double>, "RK3Ralston", out, 0.01L, 0.00001L, 0x1FD);
+        run_basic_test(rk::SSPRK3Solve<long double>, "SSPRK3", out, 0.01L, 0.00001L, 0x1F1);
 
-        // run_basic_test(rk::RK4Solve<long double>, "RK4", out, 0.001L, 0.00001L, 0x1FF);
-        // run_basic_test(rk::RK4ClassicSolve<long double>, "RK4Classic", out, 0.001L, 0.00001L, 0x1FF);
-        // run_basic_test(rk::RK4RalstonSolve<long double>, "RK4Ralston", out, 0.001L, 0.00001L, 0x1FF);
-        // run_basic_test(rk::SSPRK4Solve<long double>,"SSPRK4", out, 0.001L, 0.00001L, 0x1F1);
+        run_basic_test(rk::RK4Solve<long double>, "RK4", out, 0.001L, 0.00001L, 0x1FF);
+        run_basic_test(rk::RK4ClassicSolve<long double>, "RK4Classic", out, 0.001L, 0.00001L, 0x1FF);
+        run_basic_test(rk::RK4RalstonSolve<long double>, "RK4Ralston", out, 0.001L, 0.00001L, 0x1FF);
+        run_basic_test(rk::SSPRK4Solve<long double>,"SSPRK4", out, 0.001L, 0.00001L, 0x1F1);
 
-        // run_basic_test(rk::SSPRK5Solve<long double>,"SSPRK5", out, 0.001L, 0.00001L, 0x1F1);
-        
-        // logOut.open("../test/tests/logs/RK4System.log");
-        // if (logOut.is_open())
-        //     mass_test_3(out, logOut, 0.001 , 0.0001);
-        // logOut.close();
+        run_basic_test(rk::SSPRK5Solve<long double>,"SSPRK5", out, 0.001L, 0.00001L, 0x1F1);
 
-        // logOut.open("../test/tests/logs/MasterSolver.log");
-        // if (logOut.is_open())
-        //     uni_test_1(out, logOut,
-        //                {{0, 0}, {0.5, 0.5}, {0.5, 0, 0.5}, {1, 0, 0, 1}, {0, 1.0/6, 1.0/3, 1.0/3, 1.0/6}});
-        // logOut.close();
-        
-        // logOut.open("../test/tests/logs/ASRKFehlberg.log");
-        // if (logOut.is_open())
-        //     ASRK_test_1(rk::ASRKFehlbergSolve<long double>, 0.01, out, logOut);
-        // logOut.close();
-        logOut.open("../test/tests/logs/ASRKCashCarp.log");
+        logOut.open("../test/tests/logs/RK4System.log");
         if (logOut.is_open())
-             ASRK_test_1(rk::ASRKCashCarpSolve<long double>, 0.01, out, logOut);
-         logOut.close();
-        // logOut.open("../test/tests/logs/ASRKDormandPrince.log");
-        // if (logOut.is_open())
-        //     ASRK_test_1(rk::ASRKDormandPrinceSolve<long double>, 0.01, out, logOut);
-        // logOut.close();
-        
+            mass_test_3(out, logOut, 0.001 , 0.0001);
+        logOut.close();
+
+        logOut.open("../test/tests/logs/MasterSolver.log");
+        if (logOut.is_open())
+            uni_test_1(out, logOut,
+                        {{0, 0}, {0.5, 0.5}, {0.5, 0, 0.5}, {1, 0, 0, 1}, {0, 1.0/6, 1.0/3, 1.0/3, 1.0/6}});
+        logOut.close();
+
+        logOut.open("../test/tests/logs/ASRKFehlberg.log");
+        if (logOut.is_open())
+            ASRK_test_1(rk::ASRKFehlbergSolve<long double>, 0.01, out, logOut);
+        logOut.close();
+
     }
 }
