@@ -24,13 +24,6 @@ int ASRK_test_1(std::vector<long double> (*solver)(const rk::Expression<long dou
             tmpErrCount += sTest1.run_solve_test({0, 1}, eps, logFile, solver);
         }
         {
-            // y = sin(x) * e^(2x) + 1
-            tests_rk::BasicTest<long double> sTest2("2 * y + ( 1 - (2 * sin(0.5 * x) * sin(0.5 * x)) ) * y * (1.0 / sin(x))", {"x", "y"}, eps, 
-            {{0, 1}, {0.25, 1.4079}, {0.5, 2.30321}, {pi/4, 4.40152}, {1, 7.21768}, {pi/3, 8.03258}}, 
-            {1, 2.41327, 4.99194, 10.20456353, 16.4276766731772, 18.12542973363});
-            tmpErrCount += sTest2.run_solve_test({0, 1}, eps, logFile, solver);
-        }
-        {
             // y =  e^(sin(x)^2) - 1
 
             // Note: Finding a solution to this one is a bit awkward

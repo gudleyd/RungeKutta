@@ -83,7 +83,8 @@ namespace tests_rk {
         SystemTest(const std::vector<std::string>&, const std::vector<std::string>&, double, 
                    const std::vector<std::vector<ValueType>>&, const std::vector<std::vector<ValueType>>&);
         void force_parse();
-        int run_solve_test(std::vector<ValueType> initValues, double gridSize = 0.0001, std::ostream& out = std::cout);
+        int run_solve_test(std::vector<ValueType> initValues, double gridSize = 0.0001, std::ostream& out = std::cout,
+                           std::vector<ValueType> (*solver)(const std::vector<std::shared_ptr<rk::Expression<ValueType>>>&, std::vector<ValueType>, ValueType, ValueType) = rk::RK4SystemSolve<ValueType>);
         int run_solve_test(std::vector<ValueType> initValues, 
                            const std::vector<std::vector<ValueType>> &butcherTable, 
                            double gridSize = 0.0001,
