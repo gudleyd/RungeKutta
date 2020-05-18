@@ -71,58 +71,61 @@ namespace rk {
             return std::move(initValues);
         else if (diff < 0)
             throw std::invalid_argument("RK methods do not compute solutions at points left of initValue");
-        uint64_t n = 0;
+        
         long double h = diff;
-        std::vector<std::vector<Value>> k(functions.size(), std::vector<Value>(butcherTable.size() - 1));
-        std::vector<Value> tmpValues(initValues);
-        std::vector<Value> tmpY(initValues);
-        double mDiff = std::numeric_limits<double>::infinity();
-        while(fabs(at - initValues[0]) >= eps || mDiff > eps) {
-            // Use butcherTable.size() - 2 since the bottom most 2 are for y value coef-s
-            for (size_t j = 0; j < butcherTable.size() - 2; ++j) {
-                tmpValues[0] = initValues[0] + h * butcherTable[j][0];
-                for (size_t t = 1; t <= functions.size(); ++t) {
-                    tmpValues[t] = initValues[t];
-                    for (size_t j1 = 0; j1 < j; ++j1)
-                        tmpValues[t] += k[t - 1][j1] * butcherTable[j][j1 + 1];
+        std::vector<std::vector<Value>> k(functions.size(), std::vector<Value>(butcherTable.size() - 2));
+        std::vector<Value> valsHOrder(initValues);
+        std::vector<Value> valsLOrder(initValues);
+        uint64_t n = 0;
+        long double mDiff = std::numeric_limits<double>::infinity();
+        while (at - initValues[0] >= eps * eps) {
+            // Calculate all k-s
+            for (size_t i = 0; i < butcherTable.size() - 2; ++i) {
+                valsLOrder[0] = initValues[0] + h * butcherTable[i][0];
+                for (size_t j = 1; j <= functions.size(); ++j) {
+                    valsLOrder[j] = initValues[j];
+                    for (size_t t = 0; t < i; ++t){
+                        valsLOrder[j] += k[j - 1][t] * butcherTable[i][t + 1];
+                    }
                 }
-                for (size_t t = 0; t < functions.size(); ++t)
-                    k[t][j] = h * functions[t]->evaluate(tmpValues);
+                for (size_t j = 0; j < functions.size(); ++j) 
+                    k[j][i] = h * functions[j]->evaluate(valsLOrder); 
             }
-            tmpValues[0] = initValues[0] + h;
-            for (size_t t = 1; t <= functions.size(); ++t) {
-                for (size_t j = 0; j < butcherTable.size() - 2; ++j)
-                    tmpValues[t] = initValues[t] + k[t - 1][j] * butcherTable[butcherTable.size() - 1][j + 1];
-            }
-
-            tmpY[0] = initValues[0] + h;
-            for (size_t t = 1; t <= functions.size(); ++t) {
-                for (size_t j = 0; j < butcherTable.size() - 2; ++j)
-                    tmpY[t] = initValues[t] + k[t - 1][j] * butcherTable[butcherTable.size() - 2][j + 1];
+            // Calculate Low order and High order vals
+            valsLOrder[0] = initValues[0] + h;
+            valsHOrder[0] = valsLOrder[0];
+            for (size_t j = 1; j <= functions.size(); ++j) {
+                valsLOrder[j] = initValues[j];
+                valsHOrder[j] = initValues[j];
+                for (size_t t = 0; t < butcherTable.size() - 2; ++t) {
+                    valsLOrder[j] += k[j - 1][t] * butcherTable[butcherTable.size() - 1][t + 1];
+                    valsHOrder[j] += k[j - 1][t] * butcherTable[butcherTable.size() - 2][t + 1];
+                }
             }
             
-            ++n;
-            if (!(n & 1)) {
-                // On even steps we actually move forward
-                initValues = tmpY;
-                // Prevent overflows and shit
-                if (n >= UINT64_MAX - 1)
-                    n = 0;
-
-            } else {
-                // On odd steps we adjust our step value
-                // Adapt the step size
-                mDiff = 0;
-                for (size_t j = 0; j < initValues.size(); ++j) {
-                    auto tmpDiff = fabs(initValues[j] - tmpY[j]);
+            if ((n & 3) != 3) {
+                // Now find mDiff
+                mDiff = 0.0L;
+                for (size_t j = 1; j <= functions.size(); ++j) {
+                    auto tmpDiff = valsHOrder[j] - valsLOrder[j];
                     if (tmpDiff > mDiff)
                         mDiff = tmpDiff;
+                    else if (tmpDiff < -mDiff)
+                        mDiff = -tmpDiff;
                 }
-                h *= 0.9 * std::min(2.0, std::max(0.3, (double)std::sqrt((long double)eps/(2 * mDiff))));
-                if (h < 0.000001)
-                    h = 0.000001;
+                h *= 0.9L * std::min(2.0L, std::max(0.05L, std::sqrt((long double)eps / (2.0L * mDiff))));
+                if (h < 0.0000001L)
+                    h = 0.0000001L;  
+                long double tmpH = at - initValues[0];
+                if (h > tmpH)
+                    h = tmpH;
+            } else {
+                if (n == UINT64_MAX)
+                    throw std::runtime_error("Unable to finish solving for specified values");
+                initValues = valsHOrder;
             }
-        }
+            ++n;
+        }       
         return std::move(initValues);
     }
     // Edited by TV on 12.05.2020
@@ -695,14 +698,14 @@ namespace rk {
                                Value at,
                                Value eps) {
         const std::vector<std::vector<Value>> bT({
-            {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-            {0.2, 0.2, 0.0, 0.0, 0.0, 0.0, 0.0},
-            {0.3, 0.075, 0.225, 0.0, 0.0, 0.0, 0.0},
-            {0.6, 0.3, -0.9, 1.2, 0.0, 0.0, 0.0},
-            {1.0, -0.2037037, 2.5, -2.59259259, 1.2962963, 0.0, 0.0},
-            {0.875, 0.0294958, 0.34179688, 0.04159433, 0.40034541, 0.06176758, 0.0},
-            {0.0, 0.0978836, 0.0, 0.40257649, 0.21043771, 0.0, 0.2891022},
-            {0.0, 0.10217737, 0.0, 0.3839079, 0.24459274, 0.01932199, 0.25}
+            {0L,         0L},
+            {0.2L,       0.2L,            0L},
+            {0.3L,       3.0L/40,         9.0L/40,         0L},
+            {0.6L,       0.3L,            -0.9L,           1.2L,            0L},
+            {1L,         -11.0L/54,       2.5L,            -70.0L/27,       35.0L/27,        0L},
+            {7.0L/8,     1631.0L/55296,	  175.0L/512,	   575.0L/13824,    44275.0L/110592, 253.0L/4096},
+            {0L,         37.0L/378,	      0L,	           250.0L/621,	    125.0L/594,    	 0L,              512.0L/1771},
+            {0L,         2825.0L/27648L,  0L,	           18575.0L/48384,	13525.0L/55296,	 277.0L/14336,	  0.25L}
         });
         return ASRKMasterSolve<Value>(function, initValues, at, eps, bT);
     }
