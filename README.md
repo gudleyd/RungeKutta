@@ -3,6 +3,11 @@
 RungeKutta is a library for finding approximate solutions of ordinary differential equations.
 
 ## RungeKutta Methods
+##### 2nd Order Methods
+- RK2HeunSolve
+- RK2MidpointSolve
+- RK2RalstonSolve
+- RK2GenericSolve
 ##### 3rd Order Methods
 - RK3Solve
 - RK3GenericSolve
@@ -11,15 +16,22 @@ RungeKutta is a library for finding approximate solutions of ordinary differenti
 - RK3RalstonSolve
 ##### 4th Order Methods
 - RK4Solve
-- RK4SolveSystem
 - RK4ClassicSolve
 - RK4RalstonSolve
+- SSPRK4Solve
+##### 5th Order Methods
+- SSPRK5Solve
+##### Adaptive Methods
+- ASRKBogackiShampineSolve
 - ASRKFehlbergSolve
+- ASRKCashKarpSolve
+- ASRKDormandPrinceSolve
 ##### Master Functions
 - RKMasterSolve
 - RKMasterSystemSolve
 - ASRKMasterSolve
 - ASRKMasterSystemSolve
+
 
 
 ## Examples
