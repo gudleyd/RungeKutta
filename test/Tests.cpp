@@ -44,7 +44,7 @@ namespace tests_rk {
         auto suffix = getSuffix<measure>();
         out << "[\t" << name << "\t]\n";
         out << std::string(15 + name.size(), '-') << '\n';
-        out << "Iterations: " << iterations << '\n' << "Last run result:\t" << diff.count() << suffix << '\n';
+        out << "Iterations: " << iterations << '\n';
         if (iterations > 1) {
             out << "Estimated avg. value:\t" << ((long double)sum_time.count()) / iterations << suffix << '\n';
             if (iterations > 5)

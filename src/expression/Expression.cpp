@@ -208,7 +208,7 @@ namespace rk {
            << "#endif";
         sf.close();
 
-        std::string systemCall = "c++ ./" + compileName + ".cc " + "-o ./" + compileName + ".so -shared -fPIC";
+        std::string systemCall = "c++ ./" + compileName + ".cc " + "-o ./" + compileName + ".so -shared -fPIC -O2";
         int res = system(systemCall.c_str());
         if (res != 0) {
             return false;

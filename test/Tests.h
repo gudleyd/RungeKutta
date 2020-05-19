@@ -16,6 +16,7 @@ namespace tests_rk {
     using nanosec = std::chrono::nanoseconds;
     using microsec = std::chrono::microseconds;
     using millisec = std::chrono::milliseconds;
+    using seconds = std::chrono::seconds;
     using s_clock = std::chrono::steady_clock;
 
     template<typename measure = microsec, typename T = std::chrono::_V2::steady_clock::time_point>
