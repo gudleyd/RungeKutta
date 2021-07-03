@@ -90,7 +90,7 @@ int main() {
 
 ```
 ```bash
-~ 5
+~ 1.9093
 ```
 #### rk::Expression<Value>::evaluate
 You can evaluate your function, providing all variables values in the very same order as in parse.
@@ -137,7 +137,7 @@ int main() {
 }
 ```
 ```bash
-~ 6
+~ 9
 ```
 
 
